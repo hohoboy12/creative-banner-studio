@@ -97,54 +97,54 @@ const INITIAL_VARIATIONS: DesignVariation[] = [
     isCompliance: true,
     bgImage: '/BG_Test_1(ACD).png'
   },
-  { 
-    id: 2, 
-    title: 'Type B', 
-    desc: 'Left Image Style', 
-    bgClass: 'bg-white', 
-    textClass: 'text-[#000000]', 
-    accentClass: 'text-[#000000]', 
-    accentColor: '#000000', 
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' }, 
+  {
+    id: 2,
+    title: 'Type B',
+    desc: 'Left Image Style',
+    bgClass: 'bg-white',
+    textClass: 'text-[#000000]',
+    accentClass: 'text-[#000000]',
+    accentColor: '#000000',
+    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' },
     border: true,
     isCompliance: true,
     bgImage: '/BG_Test_2(B).png'
   },
-  { 
-    id: 3, 
-    title: 'Type C', 
-    desc: 'Bottom Right Sub', 
-    bgClass: 'bg-white', 
-    textClass: 'text-[#000000]', 
-    accentClass: 'text-[#000000]', 
-    accentColor: '#000000', 
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' }, 
+  {
+    id: 3,
+    title: 'Type C',
+    desc: 'Bottom Right Sub',
+    bgClass: 'bg-white',
+    textClass: 'text-[#000000]',
+    accentClass: 'text-[#000000]',
+    accentColor: '#000000',
+    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' },
     border: true,
     isCompliance: true,
     bgImage: '/BG_Test_2(ACD).png'
   },
-  { 
-    id: 4, 
-    title: 'Type C-2', 
-    desc: 'Center Headline', 
-    bgClass: 'bg-white', 
-    textClass: 'text-[#000000]', 
-    accentClass: 'text-[#000000]', 
-    accentColor: '#000000', 
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' }, 
+  {
+    id: 4,
+    title: 'Type C-2',
+    desc: 'Center Headline',
+    bgClass: 'bg-white',
+    textClass: 'text-[#000000]',
+    accentClass: 'text-[#000000]',
+    accentColor: '#000000',
+    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' },
     border: true,
     isCompliance: true,
     bgImage: '/BG_Test_2(ACD).png'
   },
-  { 
-    id: 5, 
-    title: 'Type D', 
-    desc: 'Bottom Image', 
-    bgClass: 'bg-white', 
-    textClass: 'text-[#000000]', 
-    accentClass: 'text-[#000000]', 
-    accentColor: '#000000', 
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' }, 
+  {
+    id: 5,
+    title: 'Type D',
+    desc: 'Bottom Image',
+    bgClass: 'bg-white',
+    textClass: 'text-[#000000]',
+    accentClass: 'text-[#000000]',
+    accentColor: '#000000',
+    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' },
     border: true,
     isCompliance: true,
     bgImage: '/BG_Test_2(B).png'
@@ -1456,32 +1456,51 @@ function HomeView({
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{mode === 'ai' ? '3' : '2'}. Design Style</h3>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-2">
               {variations.map(v => (
                 <motion.div
                   key={v.id}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    onSelectVariation(v.id);
-                  }}
-                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    activeVariationId === v.id 
-                      ? 'border-black bg-gray-50' 
-                      : 'border-gray-50 bg-gray-50 hover:border-gray-200'
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => onSelectVariation(v.id)}
+                  className={`rounded-2xl border-2 cursor-pointer transition-all p-3 ${
+                    activeVariationId === v.id
+                      ? 'border-black bg-gray-50'
+                      : 'border-transparent bg-gray-50 hover:border-gray-200'
                   }`}
                 >
-                  <div 
-                    className={`w-full aspect-video rounded-lg mb-3 ${v.bgClass} ${v.border ? 'border border-gray-200' : ''} flex items-center justify-center overflow-hidden`}
-                    style={v.bgClass ? {} : { backgroundColor: v.colors.bg }}
-                  >
-                    <div 
-                      className={`w-8 h-1 rounded-full ${v.accentClass ? v.accentClass.replace('text-', 'bg-') : ''}`} 
-                      style={v.accentClass ? {} : { backgroundColor: v.colors.accent }}
-                    />
+                  {/* Banner preview thumbnail */}
+                  <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
+                    <div className="relative w-full overflow-hidden bg-white" style={{ height: '90px' }}>
+                      <div style={{
+                        transform: 'scale(0.43)',
+                        transformOrigin: 'top left',
+                        width: '740px',
+                        height: '216px',
+                        pointerEvents: 'none',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                      }}>
+                        <BannerCanvas
+                          variation={v}
+                          headline={manualHeadline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
+                          sub={manualSub || (language === 'ja' ? 'サブコピーを入力してください' : 'Enter sub-copy here')}
+                          ctaText={manualCta}
+                          align={align}
+                          label={manualLabel}
+                          date={manualDate}
+                          bgImage={''}
+                          language={language}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs font-bold">{v.title}</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">{v.desc}</div>
+                  {/* Type info - inside outer box */}
+                  <div className="pt-3 pb-1 px-1">
+                    <div className="text-sm font-bold text-gray-900">{v.title}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{v.desc}</div>
+                  </div>
                 </motion.div>
               ))}
             </div>
