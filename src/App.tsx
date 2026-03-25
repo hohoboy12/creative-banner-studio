@@ -1273,31 +1273,31 @@ function HomeView({
   return (
     <div className="min-h-screen md:h-screen bg-white font-sans text-black flex flex-col md:flex-row md:overflow-hidden">
       {/* Left Panel: Controls */}
-      <aside className="w-full md:w-[380px] border-b md:border-r border-gray-200 bg-white flex flex-col z-20 shadow-lg">
-        <header className="p-6 border-b border-gray-100 flex items-center justify-between">
+      <aside className="w-full md:w-[360px] border-b md:border-r border-gray-100 bg-white flex flex-col z-20">
+        <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={onReset}>
-            <CustomLogo className="h-5" />
-            <span className="font-bold tracking-tight text-lg">Creative Banner Studio</span>
+            <CustomLogo className="h-4" />
+            <span className="font-semibold tracking-tight text-sm text-gray-900">Creative Banner Studio</span>
           </div>
           <div className="flex gap-1.5 items-center">
-            <div className="flex bg-gray-100 p-0.5 rounded-full">
-              <button 
+            <div className="flex bg-gray-100 p-0.5 rounded-lg">
+              <button
                 onClick={() => {
                   setLanguage('ko');
                   setSelectedCopy(null);
                   if (mode === 'ai') handleAICopy('ko');
                 }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'ko' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${language === 'ko' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
               >
                 KO
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setLanguage('ja');
                   setSelectedCopy(null);
                   if (mode === 'ai') handleAICopy('ja');
                 }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'ja' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${language === 'ja' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
               >
                 JA
               </button>
@@ -1305,21 +1305,21 @@ function HomeView({
           </div>
         </header>
 
-        <div className="flex-1 md:overflow-y-auto p-6 space-y-8 custom-scrollbar">
+        <div className="flex-1 md:overflow-y-auto p-5 space-y-6 custom-scrollbar">
           {/* Mode Toggle */}
           <section>
-            <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
-              <button 
+            <div className="flex bg-gray-100 p-0.5 rounded-xl mb-5">
+              <button
                 onClick={() => setMode('manual')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'manual' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-xs font-semibold transition-all ${mode === 'manual' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
               >
-                <Type size={14} /> Manual Entry
+                <Type size={13} /> Manual
               </button>
-              <button 
+              <button
                 onClick={() => setMode('ai')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'ai' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-xs font-semibold transition-all ${mode === 'ai' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
               >
-                <Sparkles size={14} /> AI Copywriter
+                <Sparkles size={13} /> AI Copywriter
               </button>
             </div>
           </section>
@@ -1398,48 +1398,48 @@ function HomeView({
           ) : (
             <>
               {/* Manual Entry Section */}
-              <section className="space-y-6">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">1. Content Details</h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Headline</label>
-                    <input 
+              <section className="space-y-4">
+                <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Content</h3>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest ml-0.5">Headline</label>
+                    <input
                       type="text"
                       value={manualHeadline}
                       onChange={e => setManualHeadline(e.target.value)}
                       placeholder="Enter headline"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      className="w-full px-3.5 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-black/10 focus:border-gray-400 outline-none transition-all font-medium placeholder-gray-300"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-copy</label>
-                    <input 
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest ml-0.5">Sub-copy</label>
+                    <input
                       type="text"
                       value={manualSub}
                       onChange={e => setManualSub(e.target.value)}
                       placeholder="Enter sub-copy"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      className="w-full px-3.5 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-black/10 focus:border-gray-400 outline-none transition-all font-medium placeholder-gray-300"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Top Label</label>
-                    <input 
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest ml-0.5">Top Label</label>
+                    <input
                       type="text"
-                      value={manualLabel} 
+                      value={manualLabel}
                       onChange={e => setManualLabel(e.target.value)}
                       placeholder="e.g. Compliance"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      className="w-full px-3.5 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-black/10 focus:border-gray-400 outline-none transition-all font-medium placeholder-gray-300"
                     />
                   </div>
                   {(activeVariation.title === 'Type C' || activeVariation.title === 'Type C-2' || activeVariation.title === 'Type D') && (
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Date</label>
-                      <input 
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest ml-0.5">Date</label>
+                      <input
                         type="text"
-                        value={manualDate} 
+                        value={manualDate}
                         onChange={e => setManualDate(e.target.value)}
                         placeholder="e.g. 2026.3.01 - 3.08"
-                        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                        className="w-full px-3.5 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-black/10 focus:border-gray-400 outline-none transition-all font-medium placeholder-gray-300"
                       />
                     </div>
                   )}
@@ -1448,46 +1448,50 @@ function HomeView({
             </>
           )}
 
-          {/* Section 3: Design Style */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{mode === 'ai' ? '3' : '2'}. Design Style</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+          {/* Section: Design Style */}
+          <section className="space-y-3">
+            <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Design Style</h3>
+            <div className="grid grid-cols-2 gap-2">
               {variations.map(v => (
                 <motion.div
                   key={v.id}
-                  whileHover={{ y: -2 }}
+                  whileHover={{ y: -1 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    onSelectVariation(v.id);
-                  }}
-                  className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    activeVariationId === v.id 
-                      ? 'border-black bg-gray-50' 
-                      : 'border-gray-50 bg-gray-50 hover:border-gray-200'
+                  onClick={() => onSelectVariation(v.id)}
+                  className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                    activeVariationId === v.id
+                      ? 'border-gray-900 bg-gray-50 shadow-sm'
+                      : 'border-gray-100 bg-gray-50 hover:border-gray-300'
                   }`}
                 >
-                  <div 
-                    className={`w-full aspect-video rounded-lg mb-3 ${v.bgClass} ${v.border ? 'border border-gray-200' : ''} flex items-center justify-center overflow-hidden`}
-                    style={v.bgClass ? {} : { backgroundColor: v.colors.bg }}
+                  <div
+                    className={`w-full aspect-[3/1] rounded-md mb-2 overflow-hidden ${v.border ? 'border border-gray-200' : ''}`}
+                    style={{ backgroundColor: v.colors.bg }}
                   >
-                    <div 
-                      className={`w-8 h-1 rounded-full ${v.accentClass ? v.accentClass.replace('text-', 'bg-') : ''}`} 
-                      style={v.accentClass ? {} : { backgroundColor: v.colors.accent }}
-                    />
+                    {v.bgImage && (
+                      <img src={v.bgImage} alt={v.title} className="w-full h-full object-cover opacity-80" />
+                    )}
                   </div>
-                  <div className="text-xs font-bold">{v.title}</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">{v.desc}</div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[11px] font-bold text-gray-800">{v.title}</div>
+                      <div className="text-[9px] text-gray-400 mt-0.5">{v.desc}</div>
+                    </div>
+                    {activeVariationId === v.id && (
+                      <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center shrink-0">
+                        <Check size={9} className="text-white" />
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               ))}
             </div>
           </section>
 
-          {/* Section 4: Background Image */}
-          <section className="space-y-4">
+          {/* Section: Background Image */}
+          <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{mode === 'ai' ? '4' : '3'}. Background Image</h3>
+              <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Background</h3>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {/* Uploaded Image Preview */}
@@ -1541,25 +1545,22 @@ function HomeView({
 
         </div>
 
-        <footer className="p-6 border-t border-gray-100 bg-gray-50/50 flex flex-col gap-3">
-          <Button 
+        <footer className="p-4 border-t border-gray-100 bg-white">
+          <Button
             variant="line"
             onClick={handleDownload}
             disabled={!selectedCopy || showVariations}
-            className="w-full py-4 rounded-2xl bg-black text-white hover:bg-gray-800 shadow-lg"
+            className="w-full py-3 rounded-xl bg-gray-900 text-white hover:bg-black text-sm font-semibold"
           >
-            Download Banner <Download size={18} />
+            <Download size={15} /> Download Banner
           </Button>
         </footer>
       </aside>
 
       {/* Right Panel: Live Preview */}
-      <main className={`flex-1 relative bg-white flex flex-col items-center p-5 md:p-8 overflow-y-auto ${showVariations ? '' : 'md:justify-center'} custom-scrollbar min-h-screen md:h-full`}>
-        {/* Background Decorative Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gray-200 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-gray-300 blur-[120px] rounded-full" />
-        </div>
+      <main className={`flex-1 relative bg-[#f8f8f8] flex flex-col items-center p-5 md:p-8 overflow-y-auto ${showVariations ? '' : 'md:justify-center'} custom-scrollbar min-h-screen md:h-full`}>
+        {/* Dot grid background */}
+        <div className="absolute inset-0 dot-grid pointer-events-none opacity-60" />
 
         <div className={`relative z-10 w-full max-w-5xl flex flex-col items-center ${showVariations ? '' : 'gap-4'}`}>
           {showVariations ? (
