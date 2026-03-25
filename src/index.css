@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard-jp/dist/web/static/pretendard-jp.min.css");
+@import url("https://cdn.jsdelivr.net/npm/@orioncactus/pretendard-jp@1.0.3/dist/web/static/pretendard-jp.min.css");
 
 /* LINE Seed Sans KR - Explicit Font Face for better compatibility */
 @font-face {

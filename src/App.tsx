@@ -350,6 +350,9 @@ const BannerCanvas = ({
 
   const isCompliance = variation.isCompliance;
   const fontClass = language === 'ja' ? 'font-ja' : '';
+  const bannerFont = language === 'ja'
+    ? "'Pretendard JP', sans-serif"
+    : "'LINE Seed Sans', 'LINESeedSansKR', sans-serif";
 
   const renderMixedText = (text: string, baseSize: number) => {
     if (!text) return null;
@@ -437,7 +440,7 @@ const BannerCanvas = ({
                   lineHeight: `${19 * scale}px`, 
                   letterSpacing: '-0.02em', 
                   color: '#000000', 
-                  fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                  fontFamily: bannerFont,
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   maxWidth: `${250 * scale}px`,
@@ -462,7 +465,7 @@ const BannerCanvas = ({
                   fontSize: `${14 * scale}px`, 
                   lineHeight: `${19 * scale}px`, 
                   color: '#000000', 
-                  fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                  fontFamily: bannerFont,
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   maxWidth: `${250 * scale}px`,
@@ -485,7 +488,7 @@ const BannerCanvas = ({
                 lineHeight: `${45 * scale}px`,
                 letterSpacing: '-0.03em',
                 color: '#000000',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
@@ -507,7 +510,7 @@ const BannerCanvas = ({
                 lineHeight: `${21 * scale}px`,
                 textAlign: 'right',
                 color: '#000000',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden'
               }}
@@ -528,7 +531,7 @@ const BannerCanvas = ({
                 color: '#000000',
                 lineHeight: '110%',
                 letterSpacing: '-0.02em',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 maxWidth: `${250 * scale}px`
@@ -548,7 +551,7 @@ const BannerCanvas = ({
                 lineHeight: `${45 * scale}px`,
                 letterSpacing: '-0.03em',
                 color: '#000000',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
@@ -568,7 +571,7 @@ const BannerCanvas = ({
                 fontSize: `${16 * scale}px`,
                 lineHeight: `${21 * scale}px`,
                 color: '#000000',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden'
               }}
@@ -600,7 +603,7 @@ const BannerCanvas = ({
                 color: '#000000',
                 lineHeight: '110%',
                 letterSpacing: '-0.02em',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 marginBottom: `${10 * scale}px`,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -618,7 +621,7 @@ const BannerCanvas = ({
                 letterSpacing: '-0.03em', 
                 lineHeight: `${40 * scale}px`,
                 width: '100%',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 marginBottom: `${12 * scale}px`,
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
@@ -636,7 +639,7 @@ const BannerCanvas = ({
                 color: '#000000', 
                 lineHeight: `${22 * scale}px`,
                 width: '100%',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden'
               }}
@@ -659,7 +662,7 @@ const BannerCanvas = ({
                 lineHeight: `${44 * scale}px`,
                 letterSpacing: '-0.03em',
                 color: '#000000',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
@@ -685,7 +688,7 @@ const BannerCanvas = ({
                   fontSize: `${14 * scale}px`, 
                   lineHeight: `${38 * scale}px`, 
                   color: '#000000', 
-                  fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                  fontFamily: bannerFont,
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   maxWidth: `${200 * scale}px`,
@@ -709,7 +712,7 @@ const BannerCanvas = ({
                   fontSize: `${14 * scale}px`, 
                   lineHeight: `${38 * scale}px`, 
                   color: '#000000', 
-                  fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                  fontFamily: bannerFont,
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   maxWidth: `${500 * scale}px`,
@@ -731,7 +734,7 @@ const BannerCanvas = ({
                 color: '#000000',
                 lineHeight: '110%',
                 letterSpacing: '-0.02em',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 maxWidth: `${200 * scale}px`
@@ -764,7 +767,7 @@ const BannerCanvas = ({
                 color: '#000000',
                 lineHeight: '110%',
                 letterSpacing: '-0.02em',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 marginBottom: `${12 * scale}px`,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -782,7 +785,7 @@ const BannerCanvas = ({
                 letterSpacing: '-0.03em', 
                 lineHeight: `${40 * scale}px`,
                 width: '100%',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 marginBottom: `${16 * scale}px`,
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
@@ -800,7 +803,7 @@ const BannerCanvas = ({
                 color: '#000000', 
                 lineHeight: `${23 * scale}px`,
                 width: '100%',
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                fontFamily: bannerFont,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden'
               }}
@@ -847,7 +850,7 @@ const BannerCanvas = ({
                 color: style.text,
                 fontSize: `${36 * scale}px`,
                 marginBottom: `${12 * scale}px`,
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif"
+                fontFamily: bannerFont
               }}
             >
               {renderMixedText(headline || (language === 'ja' ? 'あなたの見出し' : 'Your Headline'), 36)}
@@ -858,7 +861,7 @@ const BannerCanvas = ({
                 color: style.text,
                 fontSize: `${16 * scale}px`,
                 marginBottom: `${24 * scale}px`,
-                fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif"
+                fontFamily: bannerFont
               }}
             >
               {renderMixedText(sub, 16)}
@@ -872,7 +875,7 @@ const BannerCanvas = ({
                   fontSize: `${12 * scale}px`,
                   padding: `${10 * scale}px ${24 * scale}px`,
                   boxShadow: `0 10px 20px -5px ${style.accent}22`,
-                  fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif"
+                  fontFamily: bannerFont
                 }}
               >
                 {renderMixedText(ctaText, 12)}
