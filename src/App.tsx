@@ -285,9 +285,46 @@ const ResponsiveBanner = ({ children, baseScale = 1 }: { children: React.ReactNo
   );
 };
 
+// --- BannerThumbnail: pixel-perfect scaled preview ---
+const BannerThumbnail = (props: React.ComponentProps<typeof BannerCanvas>) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.397);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setScale(el.clientWidth / 740);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="rounded-xl border border-gray-200 overflow-hidden bg-white w-full"
+      style={{ height: `${Math.round(216 * scale)}px`, position: 'relative' }}
+    >
+      <div style={{
+        transform: `scale(${scale})`,
+        transformOrigin: 'top left',
+        width: '740px',
+        height: '216px',
+        pointerEvents: 'none',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+      }}>
+        <BannerCanvas {...props} />
+      </div>
+    </div>
+  );
+};
+
 // --- Components ---
 
-const BannerCanvas = ({ 
+const BannerCanvas = ({
   variation, 
   headline, 
   sub, 
@@ -1279,7 +1316,6 @@ function HomeView({
       <aside className="w-full md:w-[380px] border-b md:border-r border-gray-100 bg-white flex flex-col z-20">
         <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={onReset}>
-            <CustomLogo className="h-5" />
             <span className="font-bold tracking-tight text-base text-gray-900">Creative Banner Studio</span>
           </div>
           <div className="flex gap-1.5 items-center">
@@ -1470,36 +1506,20 @@ function HomeView({
                   }`}
                 >
                   {/* Banner preview thumbnail */}
-                  <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
-                    <div className="relative w-full overflow-hidden bg-white" style={{ height: '90px' }}>
-                      <div style={{
-                        transform: 'scale(0.43)',
-                        transformOrigin: 'top left',
-                        width: '740px',
-                        height: '216px',
-                        pointerEvents: 'none',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                      }}>
-                        <BannerCanvas
-                          variation={v}
-                          headline={manualHeadline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
-                          sub={manualSub || (language === 'ja' ? 'サブコピーを入力してください' : 'Enter sub-copy here')}
-                          ctaText={manualCta}
-                          align={align}
-                          label={manualLabel}
-                          date={manualDate}
-                          bgImage={''}
-                          language={language}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <BannerThumbnail
+                    variation={v}
+                    headline={manualHeadline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
+                    sub={manualSub || (language === 'ja' ? 'サブコピーを入力してください' : 'Enter sub-copy here')}
+                    ctaText={manualCta}
+                    align={align}
+                    label={manualLabel}
+                    date={manualDate}
+                    bgImage={''}
+                    language={language}
+                  />
                   {/* Type info - inside outer box */}
-                  <div className="pt-3 pb-1 px-1">
+                  <div className="pt-2 pb-1 px-1">
                     <div className="text-sm font-bold text-gray-900">{v.title}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">{v.desc}</div>
                   </div>
                 </motion.div>
               ))}
@@ -1609,8 +1629,8 @@ function HomeView({
                   className="relative mt-2 md:mt-4 w-full px-0 md:px-4"
                 >
                 <div ref={bannerRef} className="py-2">
-                    <ResponsiveBanner>
-                      <BannerCanvas 
+                    <ResponsiveBanner baseScale={0.8}>
+                      <BannerCanvas
                         variation={activeVariation}
                         headline={selectedCopy?.headline || headline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
                         sub={selectedCopy?.sub || sub || (language === 'ja' ? 'トピックを入力してコピーを生成' : 'Enter a topic to generate copy')}
