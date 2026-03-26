@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Responsive sidebar */
+.sidebar-panel {
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .sidebar-panel {
+    width: clamp(320px, 30vw, 456px);
+    min-width: 320px;
+    max-width: 456px;
+    flex-shrink: 0;
+  }
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import url("https://cdn.jsdelivr.net/npm/@orioncactus/pretendard-jp@1.0.3/dist/web/static/pretendard-jp.min.css");
 

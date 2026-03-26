@@ -1313,7 +1313,7 @@ function HomeView({
   return (
     <div className="min-h-screen md:h-screen bg-white font-sans text-black flex flex-col md:flex-row md:overflow-hidden">
       {/* Left Panel: Controls */}
-      <aside className="w-full md:w-[380px] border-b md:border-r border-gray-100 bg-white flex flex-col z-20">
+      <aside className="sidebar-panel border-b md:border-r border-gray-100 bg-white flex flex-col z-20">
         <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={onReset}>
             <span className="font-bold tracking-tight text-base text-gray-900">Creative Banner Studio</span>
