@@ -927,10 +927,10 @@ const Button = ({
   ...props 
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'line' | 'slack' | 'contact' }) => {
   const variants = {
-    primary: `bg-black text-white hover:bg-gray-800 shadow-sm`,
+    primary: `bg-[#06C755] text-white hover:bg-[#05b34c] shadow-sm`,
     secondary: `bg-gray-800 text-white hover:bg-gray-700 shadow-sm`,
-    line: `bg-black text-white hover:bg-gray-800 shadow-sm`,
-    outline: 'border border-black text-black hover:bg-gray-50',
+    line: `bg-[#06C755] text-white hover:bg-[#05b34c] shadow-sm`,
+    outline: 'border border-[#06C755] text-[#06C755] hover:bg-green-50',
     ghost: 'text-gray-600 hover:bg-gray-100',
     slack: 'bg-black text-white hover:bg-gray-800 shadow-sm',
     contact: 'bg-white border border-gray-200 text-black hover:bg-gray-50 hover:shadow-md transition-all',
@@ -1276,31 +1276,31 @@ function HomeView({
   return (
     <div className="min-h-screen md:h-screen bg-white font-sans text-black flex flex-col md:flex-row md:overflow-hidden">
       {/* Left Panel: Controls */}
-      <aside className="w-full md:w-[380px] border-b md:border-r border-gray-200 bg-white flex flex-col z-20 shadow-lg">
-        <header className="p-6 border-b border-gray-100 flex items-center justify-between">
+      <aside className="w-full md:w-[380px] border-b md:border-r border-gray-100 bg-white flex flex-col z-20">
+        <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={onReset}>
             <CustomLogo className="h-5" />
-            <span className="font-bold tracking-tight text-lg">Creative Banner Studio</span>
+            <span className="font-bold tracking-tight text-base text-gray-900">Creative Banner Studio</span>
           </div>
           <div className="flex gap-1.5 items-center">
-            <div className="flex bg-gray-100 p-0.5 rounded-full">
-              <button 
+            <div className="flex bg-gray-100 p-0.5 rounded-lg">
+              <button
                 onClick={() => {
                   setLanguage('ko');
                   setSelectedCopy(null);
                   if (mode === 'ai') handleAICopy('ko');
                 }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'ko' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${language === 'ko' ? 'bg-[#06C755] text-white shadow-sm' : 'text-gray-400'}`}
               >
                 KO
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setLanguage('ja');
                   setSelectedCopy(null);
                   if (mode === 'ai') handleAICopy('ja');
                 }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'ja' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${language === 'ja' ? 'bg-[#06C755] text-white shadow-sm' : 'text-gray-400'}`}
               >
                 JA
               </button>
@@ -1308,21 +1308,21 @@ function HomeView({
           </div>
         </header>
 
-        <div className="flex-1 md:overflow-y-auto p-6 space-y-8 custom-scrollbar">
+        <div className="flex-1 md:overflow-y-auto p-5 space-y-6 custom-scrollbar">
           {/* Mode Toggle */}
           <section>
-            <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
-              <button 
+            <div className="flex bg-gray-100 p-1 rounded-xl mb-5">
+              <button
                 onClick={() => setMode('manual')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'manual' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${mode === 'manual' ? 'bg-white shadow-sm text-[#06C755]' : 'text-gray-400'}`}
               >
-                <Type size={14} /> Manual Entry
+                <Type size={13} /> Manual Entry
               </button>
-              <button 
+              <button
                 onClick={() => setMode('ai')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'ai' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${mode === 'ai' ? 'bg-white shadow-sm text-[#06C755]' : 'text-gray-400'}`}
               >
-                <Sparkles size={14} /> AI Copywriter
+                <Sparkles size={13} /> AI Copywriter
               </button>
             </div>
           </section>
@@ -1333,19 +1333,19 @@ function HomeView({
               <section>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">1. Topic</h3>
-                  {loading && <RefreshCw size={14} className="animate-spin text-black" />}
+                  {loading && <RefreshCw size={14} className="animate-spin text-[#06C755]" />}
                 </div>
                 <div className="relative group">
                   <textarea
                     value={prompt}
                     onChange={e => { setPrompt(e.target.value); setError(''); }}
                     placeholder="What are you announcing?"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 text-lg focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all h-32 resize-none placeholder-gray-300"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 text-lg focus:ring-2 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all h-32 resize-none placeholder-gray-300"
                   />
                   <button 
                     onClick={handleAICopy}
                     disabled={loading || !prompt.trim()}
-                    className="absolute bottom-4 right-4 bg-black text-white p-3 rounded-xl hover:bg-gray-800 disabled:opacity-30 transition-all shadow-lg"
+                    className="absolute bottom-4 right-4 bg-[#06C755] text-white p-3 rounded-xl hover:bg-[#05b34c] disabled:opacity-30 transition-all shadow-sm"
                   >
                     <Sparkles size={18} />
                   </button>
@@ -1373,8 +1373,8 @@ function HomeView({
                           }}
                           className={`p-5 cursor-pointer rounded-2xl border-2 transition-all ${
                             selectedCopy?.headline === c.headline 
-                              ? 'border-black bg-gray-50' 
-                              : 'border-gray-50 bg-gray-50 hover:border-gray-200'
+                              ? 'border-[#06C755] bg-green-50'
+                              : 'border-gray-100 bg-gray-50 hover:border-gray-200'
                           }`}
                         >
                           <div className="flex justify-between items-start">
@@ -1411,7 +1411,7 @@ function HomeView({
                       value={manualHeadline}
                       onChange={e => setManualHeadline(e.target.value)}
                       placeholder="Enter headline"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all font-medium"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1421,7 +1421,7 @@ function HomeView({
                       value={manualSub}
                       onChange={e => setManualSub(e.target.value)}
                       placeholder="Enter sub-copy"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all font-medium"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1431,7 +1431,7 @@ function HomeView({
                       value={manualLabel} 
                       onChange={e => setManualLabel(e.target.value)}
                       placeholder="e.g. Compliance"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all font-medium"
                     />
                   </div>
                   {(activeVariation.title === 'Type C' || activeVariation.title === 'Type C-2' || activeVariation.title === 'Type D') && (
@@ -1442,7 +1442,7 @@ function HomeView({
                         value={manualDate} 
                         onChange={e => setManualDate(e.target.value)}
                         placeholder="e.g. 2026.3.01 - 3.08"
-                        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all font-medium"
                       />
                     </div>
                   )}
@@ -1465,7 +1465,7 @@ function HomeView({
                   onClick={() => onSelectVariation(v.id)}
                   className={`rounded-2xl border-2 cursor-pointer transition-all p-3 ${
                     activeVariationId === v.id
-                      ? 'border-black bg-gray-50'
+                      ? 'border-[#06C755] bg-green-50'
                       : 'border-transparent bg-gray-50 hover:border-gray-200'
                   }`}
                 >
@@ -1543,7 +1543,7 @@ function HomeView({
                   key={bg.id}
                   onClick={() => setBgImage(bg.url)}
                   className={`w-full aspect-[740/216] rounded-xl border-2 transition-all overflow-hidden relative ${
-                    bgImage === bg.url ? 'border-black' : 'border-gray-100'
+                    bgImage === bg.url ? 'border-[#06C755]' : 'border-gray-100'
                   }`}
                 >
                   {bg.url ? (
@@ -1568,7 +1568,7 @@ function HomeView({
             variant="line"
             onClick={handleDownload}
             disabled={!selectedCopy || showVariations}
-            className="w-full py-4 rounded-2xl bg-black text-white hover:bg-gray-800 shadow-lg"
+            className="w-full py-3.5 rounded-xl bg-[#06C755] text-white hover:bg-[#05b34c] shadow-sm font-semibold"
           >
             Download Banner <Download size={18} />
           </Button>
@@ -1905,7 +1905,7 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
                   <textarea 
                     value={headline} 
                     onChange={e => setHeadline(e.target.value)}
-                    className="w-full p-1 bg-gray-50 border border-gray-100 rounded text-[9px] focus:ring-1 focus:ring-black/10 focus:border-black outline-none transition-all h-14 resize-none font-medium"
+                    className="w-full p-1 bg-gray-50 border border-gray-100 rounded text-[9px] focus:ring-1 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all h-14 resize-none font-medium"
                   />
                 </div>
                 <div className="space-y-0.5">
@@ -1914,7 +1914,7 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
                     type="text"
                     value={sub} 
                     onChange={e => setSub(e.target.value)}
-                    className="w-full p-1 bg-gray-50 border border-gray-100 rounded text-[9px] focus:ring-1 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                    className="w-full p-1 bg-gray-50 border border-gray-100 rounded text-[9px] focus:ring-1 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all font-medium"
                   />
                 </div>
                 <div className="space-y-0.5">
@@ -1923,7 +1923,7 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
                     type="text"
                     value={label} 
                     onChange={e => setLabel(e.target.value)}
-                    className="w-full p-1 bg-gray-50 border border-gray-100 rounded text-[9px] focus:ring-1 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                    className="w-full p-1 bg-gray-50 border border-gray-100 rounded text-[9px] focus:ring-1 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all font-medium"
                     placeholder="e.g. Compliance"
                   />
                 </div>
@@ -1934,7 +1934,7 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
                       type="text"
                       value={date} 
                       onChange={e => setDate(e.target.value)}
-                      className="w-full p-1 bg-gray-50 border border-gray-100 rounded text-[9px] focus:ring-1 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      className="w-full p-1 bg-gray-50 border border-gray-100 rounded text-[9px] focus:ring-1 focus:ring-[#06C755]/20 focus:border-[#06C755] outline-none transition-all font-medium"
                       placeholder="e.g. 2026.3.01 - 3.08"
                     />
                   </div>
@@ -2004,7 +2004,7 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
                     key={bg.id}
                     onClick={() => setBgImage(bg.url)}
                     className={`aspect-[740/216] rounded-xl border-2 transition-all overflow-hidden relative ${
-                      bgImage === bg.url ? 'border-black' : 'border-gray-100'
+                      bgImage === bg.url ? 'border-[#06C755]' : 'border-gray-100'
                     }`}
                   >
                     {bg.url ? (
