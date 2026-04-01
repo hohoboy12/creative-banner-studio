@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* Responsive sidebar */
 .sidebar-panel {
   width: 100%;
+  letter-spacing: 0.32px;
 }
 @media (min-width: 768px) {
   .sidebar-panel {
@@ -13,41 +19,164 @@
   }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-@import url("https://cdn.jsdelivr.net/npm/@orioncactus/pretendard-jp@1.0.3/dist/web/static/pretendard-jp.min.css");
-
-/* LINE Seed Sans KR - Explicit Font Face for better compatibility */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700;800&display=swap');
+/* Pretendard - Self-hosted */
 @font-face {
-  font-family: 'LINE Seed Sans';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2207-01@1.1/LINESeedSansKR-Regular.woff2') format('woff2');
+  font-family: 'Pretendard';
+  src: url('/fonts/Pretendard-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
-
 @font-face {
-  font-family: 'LINE Seed Sans';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2207-01@1.1/LINESeedSansKR-Bold.woff2') format('woff2');
+  font-family: 'Pretendard';
+  src: url('/fonts/Pretendard-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/Pretendard-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/Pretendard-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/Pretendard-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 
+/* LINE Seed Sans EN - Self-hosted (Latin/Numbers) */
 @font-face {
   font-family: 'LINE Seed Sans';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2207-01@1.1/LINESeedSansKR-Bold.woff2') format('woff2');
+  src: url('/fonts/LINESeedSans_W_Th.woff2') format('woff2');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-007F, U+0080-00FF, U+2000-206F, U+20A0-20CF, U+2100-214F;
+}
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedSans_W_Rg.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-007F, U+0080-00FF, U+2000-206F, U+20A0-20CF, U+2100-214F;
+}
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedSans_W_Rg.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-007F, U+0080-00FF, U+2000-206F, U+20A0-20CF, U+2100-214F;
+}
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedSans_W_Bd.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-007F, U+0080-00FF, U+2000-206F, U+20A0-20CF, U+2100-214F;
+}
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedSans_W_XBd.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-007F, U+0080-00FF, U+2000-206F, U+20A0-20CF, U+2100-214F;
+}
+
+/* LINE Seed Sans KR - Self-hosted (Korean) */
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedKR-Th.woff2') format('woff2');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+AC00-D7AF, U+1100-11FF, U+3130-318F, U+A960-A97F, U+D7B0-D7FF;
+}
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedKR-Rg.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+AC00-D7AF, U+1100-11FF, U+3130-318F, U+A960-A97F, U+D7B0-D7FF;
+}
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedKR-Rg.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+AC00-D7AF, U+1100-11FF, U+3130-318F, U+A960-A97F, U+D7B0-D7FF;
+}
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedKR-Bd.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+AC00-D7AF, U+1100-11FF, U+3130-318F, U+A960-A97F, U+D7B0-D7FF;
+}
+@font-face {
+  font-family: 'LINE Seed Sans';
+  src: url('/fonts/LINESeedKR-Bd.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+AC00-D7AF, U+1100-11FF, U+3130-318F, U+A960-A97F, U+D7B0-D7FF;
+}
+
+/* LINESeedSansKR alias - for backward compatibility in font stacks */
+@font-face {
+  font-family: 'LINESeedSansKR';
+  src: url('/fonts/LINESeedKR-Rg.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LINESeedSansKR';
+  src: url('/fonts/LINESeedKR-Bd.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LINESeedSansKR';
+  src: url('/fonts/LINESeedKR-Bd.woff2') format('woff2');
   font-weight: 800;
   font-style: normal;
   font-display: swap;
 }
 
 @theme {
-  --font-sans: "LINE Seed Sans", "LINESeedSansKR", "LINE Seed Sans App", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "LINE Seed Sans", "LINESeedSansKR", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "LINE Seed Sans", "LINESeedSansKR", "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
 
 @layer base {
+  *, *::before, *::after {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: 0.32px;
+  }
   html, body {
     font-family: var(--font-sans);
     @apply bg-white text-black antialiased selection:bg-black selection:text-white md:h-screen md:overflow-hidden;
@@ -58,8 +187,9 @@
   }
 }
 
-.font-ja, .font-ja * {
-  font-family: 'Pretendard JP', sans-serif !important;
+/* font-ja: default Noto Sans JP, with Pretendard JP fallback */
+.font-ja {
+  font-family: 'Noto Sans JP', 'Pretendard JP', sans-serif;
 }
 
 .dot-grid {

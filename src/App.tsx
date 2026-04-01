@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { toPng } from 'html-to-image';
 import { 
   Wand2, 
@@ -43,7 +44,7 @@ import {
   CheckSquare
 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'motion/react';
-import { GoogleGenAI, Type as GeminiType } from "@google/genai";
+// Anthropic Claude API (browser direct access)
 
 // --- Constants & Types ---
 
@@ -81,73 +82,60 @@ interface DesignVariation {
   border?: boolean;
   isCompliance?: boolean;
   bgImage?: string;
+  bannerHeight?: number;
+  layoutType?: 'new-guide' | 'legacy';
+  headlineSize?: number;
+  headlineLineHeight?: number;
 }
 
 const INITIAL_VARIATIONS: DesignVariation[] = [
-  { 
-    id: 1, 
-    title: 'Type A', 
-    desc: 'Official Template', 
-    bgClass: 'bg-white', 
-    textClass: 'text-[#000000]', 
-    accentClass: 'text-[#000000]', 
-    accentColor: '#000000', 
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' }, 
-    border: true,
-    isCompliance: true,
-    bgImage: '/BG_Test_1(ACD).png'
+  {
+    id: 10,
+    title: 'Single Short',
+    desc: 'Short headline, 1 line',
+    bgClass: '',
+    textClass: 'text-[#111111]',
+    accentClass: 'text-[#0063F3]',
+    accentColor: '#0063F3',
+    colors: { bg: '#F5F6F8', text: '#111111', accent: '#0063F3', secondary: '#F5F6F8' },
+    border: false,
+    isCompliance: false,
+    bannerHeight: 232,
+    layoutType: 'new-guide' as const,
+    headlineSize: 29,
+    headlineLineHeight: 38,
   },
   {
-    id: 2,
-    title: 'Type B',
-    desc: 'Left Image Style',
-    bgClass: 'bg-white',
-    textClass: 'text-[#000000]',
-    accentClass: 'text-[#000000]',
-    accentColor: '#000000',
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' },
-    border: true,
-    isCompliance: true,
-    bgImage: '/BG_Test_2(B).png'
+    id: 12,
+    title: 'Two-line',
+    desc: 'Headline 2 lines',
+    bgClass: '',
+    textClass: 'text-[#111111]',
+    accentClass: 'text-[#0063F3]',
+    accentColor: '#0063F3',
+    colors: { bg: '#F5F6F8', text: '#111111', accent: '#0063F3', secondary: '#F5F6F8' },
+    border: false,
+    isCompliance: false,
+    bannerHeight: 232,
+    layoutType: 'new-guide' as const,
+    headlineSize: 23,
+    headlineLineHeight: 30,
   },
   {
-    id: 3,
-    title: 'Type C',
-    desc: 'Bottom Right Sub',
-    bgClass: 'bg-white',
-    textClass: 'text-[#000000]',
-    accentClass: 'text-[#000000]',
-    accentColor: '#000000',
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' },
-    border: true,
-    isCompliance: true,
-    bgImage: '/BG_Test_2(ACD).png'
-  },
-  {
-    id: 4,
-    title: 'Type C-2',
-    desc: 'Center Headline',
-    bgClass: 'bg-white',
-    textClass: 'text-[#000000]',
-    accentClass: 'text-[#000000]',
-    accentColor: '#000000',
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' },
-    border: true,
-    isCompliance: true,
-    bgImage: '/BG_Test_2(ACD).png'
-  },
-  {
-    id: 5,
-    title: 'Type D',
-    desc: 'Bottom Image',
-    bgClass: 'bg-white',
-    textClass: 'text-[#000000]',
-    accentClass: 'text-[#000000]',
-    accentColor: '#000000',
-    colors: { bg: '#ffffff', text: '#000000', accent: '#000000', secondary: '#f8f9fa' },
-    border: true,
-    isCompliance: true,
-    bgImage: '/BG_Test_2(B).png'
+    id: 13,
+    title: 'Three-line',
+    desc: 'Headline 3 lines',
+    bgClass: '',
+    textClass: 'text-[#111111]',
+    accentClass: 'text-[#0063F3]',
+    accentColor: '#0063F3',
+    colors: { bg: '#F5F6F8', text: '#111111', accent: '#0063F3', secondary: '#F5F6F8' },
+    border: false,
+    isCompliance: false,
+    bannerHeight: 232,
+    layoutType: 'new-guide' as const,
+    headlineSize: 21,
+    headlineLineHeight: 28,
   },
 ];
 
@@ -226,40 +214,57 @@ const AddStyleModal = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: (
 
 // --- AI Service ---
 
-async function generateAICopy(prompt: string, language: 'ko' | 'ja'): Promise<BannerCopy[]> {
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  
-  const langInstruction = language === 'ja' 
+const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY ?? '';
+
+async function generateAICopy(prompt: string, language: 'ko' | 'ja' | 'en' | 'tw'): Promise<BannerCopy[]> {
+  const langInstruction = language === 'ja'
     ? "Generate all copy in Japanese. Headline max 15 chars, Sub-copy max 25 chars, CTA max 6 chars."
+    : language === 'en'
+    ? "Generate all copy in English. Headline max 40 chars, Sub-copy max 60 chars, CTA max 10 chars."
+    : language === 'tw'
+    ? "Generate all copy in Traditional Chinese (Taiwan). Headline max 20 chars, Sub-copy max 30 chars, CTA max 8 chars."
     : "Generate all copy in Korean. Headline max 20 chars, Sub-copy max 30 chars, CTA max 8 chars.";
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: `User's banner topic: "${prompt}"
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5',
+      max_tokens: 1024,
+      messages: [{
+        role: 'user',
+        content: `User's banner topic: "${prompt}"
 
-Please create 3 different tones of banner copy in JSON array format (output ONLY JSON).
+Please create 3 different tones of banner copy in JSON array format (output ONLY raw JSON, no markdown, no code block).
 ${langInstruction}
 
 [
   {"tone":"Professional","headline":"Headline","sub":"Sub-copy","cta":"Button Text"},
   {"tone":"Friendly","headline":"...","sub":"...","cta":"..."},
   {"tone":"Bold","headline":"...","sub":"...","cta":"..."}
-]`,
-    config: {
-      responseMimeType: "application/json",
-    }
+]`
+      }]
+    })
   });
 
+  const data = await response.json();
+
   try {
-    const text = response.text || '[]';
-    return JSON.parse(text);
+    const text = data.content?.[0]?.text || '[]';
+    const cleaned = text.replace(/```json\n?|\n?```/g, '').trim();
+    return JSON.parse(cleaned);
   } catch (e) {
-    console.error("Failed to parse AI response", e);
+    console.error("Failed to parse AI response", e, data);
     return [];
   }
 }
 
-const ResponsiveBanner = ({ children, baseScale = 1 }: { children: React.ReactNode, baseScale?: number }) => {
+const ResponsiveBanner = ({ children, baseScale = 1, height = 216 }: { children: React.ReactNode, baseScale?: number, height?: number }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -277,8 +282,8 @@ const ResponsiveBanner = ({ children, baseScale = 1 }: { children: React.ReactNo
   }, []);
 
   return (
-    <div className="w-full aspect-[740/216] relative" ref={containerRef}>
-      <div className="w-[740px] h-[216px] origin-top-left" style={{ transform: `scale(${scale * baseScale})` }}>
+    <div className="w-full relative" style={{ aspectRatio: `740/${height}` }} ref={containerRef}>
+      <div style={{ width: '740px', height: `${height}px`, transformOrigin: 'top left', transform: `scale(${scale * baseScale})` }}>
         {children}
       </div>
     </div>
@@ -303,19 +308,21 @@ const BannerThumbnail = (props: React.ComponentProps<typeof BannerCanvas>) => {
   return (
     <div
       ref={containerRef}
-      className="rounded-xl border border-gray-200 overflow-hidden bg-white w-full"
-      style={{ height: `${Math.round(216 * scale)}px`, position: 'relative' }}
+      className="overflow-hidden w-full"
+      style={{ height: `${Math.round((props.variation.bannerHeight || 216) * scale)}px`, position: 'relative', background: '#FFFFFF' }}
     >
       <div style={{
-        transform: `scale(${scale})`,
+        transform: `scale(${scale}) translateZ(0)`,
         transformOrigin: 'top left',
         width: '740px',
-        height: '216px',
+        height: `${props.variation.bannerHeight || 216}px`,
         pointerEvents: 'none',
         position: 'absolute',
         top: 0,
         left: 0,
-      }}>
+        willChange: 'transform',
+        WebkitFontSmoothing: 'antialiased',
+      } as React.CSSProperties}>
         <BannerCanvas {...props} />
       </div>
     </div>
@@ -324,11 +331,11 @@ const BannerThumbnail = (props: React.ComponentProps<typeof BannerCanvas>) => {
 
 // --- Components ---
 
-const BannerCanvas = ({ 
-  variation, 
-  headline, 
-  sub, 
-  ctaText, 
+const BannerCanvas = ({
+  variation,
+  headline,
+  sub,
+  ctaText,
   scale = 1,
   className = "",
   tilt = false,
@@ -337,11 +344,13 @@ const BannerCanvas = ({
   label,
   date,
   overrideStyle,
-  language = 'ko'
-}: { 
-  variation: DesignVariation, 
-  headline: string, 
-  sub: string, 
+  language = 'ko',
+  noRadius = false,
+  overrideHeadlineSize,
+}: {
+  variation: DesignVariation,
+  headline: string,
+  sub: string,
   ctaText?: string,
   scale?: number,
   className?: string,
@@ -351,7 +360,9 @@ const BannerCanvas = ({
   label?: string;
   date?: string;
   overrideStyle?: { bg: string, text: string, accent: string, secondary?: string };
-  language?: 'ko' | 'ja';
+  language?: 'ko' | 'ja' | 'en' | 'tw';
+  noRadius?: boolean;
+  overrideHeadlineSize?: number | null;
 }) => {
   const style = overrideStyle 
     ? { ...overrideStyle, secondary: overrideStyle.secondary || (overrideStyle.bg === '#ffffff' ? '#f8f9fa' : overrideStyle.bg + '11') } 
@@ -389,20 +400,47 @@ const BannerCanvas = ({
   const fontClass = language === 'ja' ? 'font-ja' : '';
   const bannerFont = language === 'ja'
     ? "'Pretendard JP', sans-serif"
+    : language === 'en'
+    ? "'LINE Seed Sans', 'LINESeedSansKR', sans-serif"
+    : language === 'tw'
+    ? "'Noto Sans TC', 'PingFang TC', sans-serif"
     : "'LINE Seed Sans', 'LINESeedSansKR', sans-serif";
+  const jaOffset = (language === 'ja' || language === 'tw') ? 1 : 0;
 
-  const renderMixedText = (text: string, baseSize: number) => {
+  // Dynamic headline size: overrideHeadlineSize가 있으면 사용, 없으면 variation 기본값
+  const headlineFontSize = overrideHeadlineSize ?? variation.headlineSize ?? 25;
+  const headlineLineHeight = overrideHeadlineSize
+    ? Math.round(overrideHeadlineSize * 1.31)
+    : (variation.headlineLineHeight ?? 33);
+  // 각 variation에 맞는 최대 줄수: Single Short=1줄, Two-line=2줄, Three-line=3줄
+  const headlineMaxLines = variation.title === 'Three-line' ? 3 : variation.title === 'Two-line' ? 2 : 1;
+
+  const renderMixedText = (text: string, baseSize: number, twEnOffset: number = 0, twEnWeight?: number, lightLatin?: boolean) => {
     if (!text) return null;
-    const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
-    const hasEnglish = /[a-zA-Z]/.test(text);
-    if (hasJapanese && hasEnglish) {
-      const parts = text.split(/([\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+)/g);
+    // JP/TW: English & numbers → LINE Seed Sans / KR/EN: numbers → LINE Seed Sans (explicit)
+    // lightLatin: sub-copy context — process ALL Latin in all languages with Inter 300
+    const hasLatinOrNum = /[a-zA-Z0-9]/.test(text);
+    const hasNumOnly = /[0-9]/.test(text);
+    const shouldProcess = lightLatin
+      ? hasLatinOrNum
+      : (language === 'ja' || language === 'tw') ? hasLatinOrNum : hasNumOnly;
+
+    if (shouldProcess) {
+      const splitPattern = /([a-zA-Z0-9]+(?:[.\-:/\s][a-zA-Z0-9]+)*)/g;
+      const checkPattern = lightLatin ? /[a-zA-Z0-9]/ : (language === 'ja' || language === 'tw') ? /[a-zA-Z0-9]/ : /[0-9]/;
+      const parts = text.split(splitPattern);
+      const enSize = language === 'tw' ? baseSize + twEnOffset : baseSize;
       return (
         <>
           {parts.map((part, i) => {
-            if (/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(part)) {
+            if (checkPattern.test(part)) {
               return (
-                <span key={i} style={{ fontSize: `${(baseSize - 1) * (scale || 1)}px` }}>
+                <span key={i} style={{
+                  fontFamily: "'LINE Seed Sans', 'LINESeedSansKR', sans-serif",
+                  fontSize: `${enSize * (scale || 1)}px`,
+                  fontWeight: lightLatin ? 400 : undefined,
+                  ...(twEnWeight !== undefined ? { fontWeight: twEnWeight } : {}),
+                }}>
                   {part}
                 </span>
               );
@@ -420,12 +458,13 @@ const BannerCanvas = ({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ 
-        width: `${740 * scale}px`, 
-        height: `${216 * scale}px`, 
+        width: `${740 * scale}px`,
+        height: `${(variation.bannerHeight || 216) * scale}px`,
         backgroundColor: style.bg,
         border: variation.border ? '1px solid rgba(0,0,0,0.05)' : 'none',
-        borderRadius: isCompliance ? `${12 * scale}px` : `${24 * scale}px`,
-        padding: isCompliance ? '0' : `${40 * scale}px ${60 * scale}px`,
+        borderRadius: noRadius ? 0 : variation.layoutType === 'new-guide' ? `${10 * scale}px` : isCompliance ? `${12 * scale}px` : `${24 * scale}px`,
+        overflow: 'hidden',
+        padding: (isCompliance || variation.layoutType === 'new-guide') ? '0' : `${40 * scale}px ${60 * scale}px`,
         rotateX: tilt ? rotateX : 0,
         rotateY: tilt ? rotateY : 0,
         transformStyle: "preserve-3d",
@@ -435,14 +474,14 @@ const BannerCanvas = ({
         alignItems: align === 'center' ? 'center' : 'flex-start',
         textAlign: align
       }}
-      className={`relative overflow-hidden transition-all duration-700 ease-out ${className} ${fontClass}`}
+      className={`relative overflow-hidden ${className} ${fontClass}`}
     >
-      {/* Background Image */}
-      {currentBgImage && (
-        <img 
+      {/* Background Image - only for legacy layouts */}
+      {currentBgImage && variation.layoutType !== 'new-guide' && (
+        <img
           src={currentBgImage}
           alt="Background"
-          className="absolute z-0 w-full h-full object-cover transition-opacity duration-500"
+          className="absolute z-0 w-full h-full object-cover"
           style={{
             inset: 0,
             objectFit: 'cover',
@@ -457,7 +496,113 @@ const BannerCanvas = ({
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")' }} />
       )}
 
-      {isCompliance ? (
+      {variation.layoutType === 'new-guide' ? (() => {
+        const maxChars: Record<string, { label: number; sub: number }> = {
+          'Single Short': { label: 22, sub: 20 },
+          'Two-line': { label: 22, sub: 20 },
+          'Three-line': { label: 22, sub: 20 },
+        };
+        const limits = maxChars[variation.title] || { label: 22, sub: 20 };
+        const clampedLabel = (label || (language === 'ja' ? 'カテゴリ' : 'Category')).slice(0, limits.label);
+        const clampedSub = sub.slice(0, limits.sub);
+        return align === 'center' ? (
+          // CENTER mode: text only, centered horizontally & vertically, no image
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: `${405 * scale}px`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              fontFamily: bannerFont,
+            }}>
+              <div style={{
+                fontSize: `${(13 - jaOffset) * scale}px`, fontWeight: 800, color: '#0063F3',
+                marginBottom: `${8 * scale}px`,
+                lineHeight: `${17 * scale}px`,
+                textAlign: 'center', width: '100%',
+                fontFamily: bannerFont,
+              }}>
+                {renderMixedText(clampedLabel, 13, 0)}
+              </div>
+              <div style={{
+                fontSize: `${headlineFontSize * scale}px`, fontWeight: language === 'tw' ? 800 : 700, color: '#111111',
+                marginBottom: `${8 * scale}px`,
+                lineHeight: `${headlineLineHeight * scale}px`,
+                textAlign: 'center', width: '100%', wordBreak: 'break-all', overflowWrap: 'break-word',
+                whiteSpace: 'pre-wrap',
+                fontFamily: bannerFont,
+                overflow: 'hidden', maxHeight: `${headlineLineHeight * headlineMaxLines * scale}px`,
+                letterSpacing: language === 'en' ? `${-0.32 * scale}px` : undefined,
+              }}>
+                {renderMixedText(headline, headlineFontSize, 2, language === 'tw' ? 700 : undefined)}
+              </div>
+              <div style={{
+                fontSize: `${(15 - jaOffset) * scale}px`, fontWeight: 400, color: '#111111',
+                lineHeight: `${20 * scale}px`,
+                textAlign: 'center', width: '100%',
+                fontFamily: bannerFont,
+              }}>
+                {renderMixedText(clampedSub, 15, 1, undefined, true)}
+              </div>
+            </div>
+          </div>
+        ) : (
+          // LEFT mode: left text + right image
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'stretch' }}>
+            <div style={{
+              flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center',
+              paddingLeft: `${54 * scale}px`, paddingRight: `${35 * scale}px`,
+              fontFamily: bannerFont,
+            }}>
+              <div style={{
+                fontSize: `${(13 - jaOffset) * scale}px`, fontWeight: 800, color: '#0063F3',
+                marginBottom: `${8 * scale}px`,
+                lineHeight: `${17 * scale}px`,
+                fontFamily: bannerFont,
+              }}>
+                {renderMixedText(clampedLabel, 13, 0)}
+              </div>
+              <div style={{
+                fontSize: `${headlineFontSize * scale}px`, fontWeight: language === 'tw' ? 800 : 700, color: '#111111',
+                marginBottom: `${8 * scale}px`,
+                lineHeight: `${headlineLineHeight * scale}px`,
+                wordBreak: 'break-all', overflowWrap: 'break-word',
+                whiteSpace: 'pre-wrap',
+                fontFamily: bannerFont,
+                overflow: 'hidden', maxHeight: `${headlineLineHeight * headlineMaxLines * scale}px`,
+                letterSpacing: language === 'en' ? `${-0.32 * scale}px` : undefined,
+              }}>
+                {renderMixedText(headline, headlineFontSize, 2, language === 'tw' ? 700 : undefined)}
+              </div>
+              <div style={{
+                fontSize: `${(15 - jaOffset) * scale}px`, fontWeight: 400, color: '#111111',
+                lineHeight: `${20 * scale}px`,
+                fontFamily: bannerFont,
+              }}>
+                {renderMixedText(clampedSub, 15, 1, undefined, true)}
+              </div>
+            </div>
+            {/* Right image - 280×232px */}
+            {currentBgImage ? (
+              <div style={{
+                width: `${280 * scale}px`, height: `${(variation.bannerHeight || 232) * scale}px`,
+                flexShrink: 0, overflow: 'hidden',
+              }}>
+                <img src={currentBgImage} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+              </div>
+            ) : (
+              <div style={{
+                width: `${280 * scale}px`, height: `${(variation.bannerHeight || 232) * scale}px`,
+                flexShrink: 0, backgroundColor: '#E8EAF0',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ color: '#999', fontSize: `${12 * scale}px` }}>280×232</span>
+              </div>
+            )}
+          </div>
+        );
+      })() : isCompliance ? (
         variation.title === 'Type C' ? (
           <>
             {/* Top Left Group */}
@@ -942,18 +1087,16 @@ const SlackLogo = () => (
   </svg>
 );
 
-const CustomLogo = ({ className = "h-8" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g clipPath="url(#clip0_54_715)">
-      <rect width="300" height="300" fill="white"/>
-      <path d="M141.9 0.222846C224.616 -4.25095 295.299 59.1754 299.777 141.892C304.255 224.609 240.832 295.294 158.118 299.778C75.3939 304.259 4.70136 240.83 0.22327 158.107C-4.2551 75.386 59.177 4.69693 141.9 0.222846Z" fill="black"/>
-      <path d="M147.493 44.829C179.721 43.2366 209.906 58.4893 230.685 82.6094C250.028 105.061 257.033 134.149 255.007 163.267C254.318 173.135 249.554 183.311 241.902 189.663C234.88 195.5 225.821 198.296 216.733 197.426C209.9 196.716 203.413 194.067 198.04 189.786C173.798 170.489 194.981 148.098 176.805 126.591C170.65 119.306 161.829 114.8 152.317 114.084C142.889 113.376 133.564 116.449 126.404 122.627C119.282 128.789 114.906 137.531 114.24 146.925C113.516 156.431 116.667 165.825 122.977 172.972C129.156 180.057 137.93 184.355 147.316 184.893C163.5 185.94 173.523 181.883 187.785 194.376C202.166 206.977 203.325 228.79 190.78 243.171C183.77 251.212 172.965 254.9 162.487 255.515C131.377 257.261 103.247 249.337 79.9624 228.601C35.5867 189.085 32.6008 120.605 73.6536 77.5843C94.3753 55.8694 117.493 46.2459 147.493 44.829Z" fill="white"/>
+const CustomLogo = ({ className = "h-8", style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg className={className} style={style} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <mask id="mask0_195_2372" style={{maskType:'luminance'} as React.CSSProperties} maskUnits="userSpaceOnUse" x="1" y="2" width="20" height="19">
+      <path d="M20.1797 2.32031H1.82031V20.6797H20.1797V2.32031Z" fill="white"/>
+    </mask>
+    <g mask="url(#mask0_195_2372)">
+      <path d="M20.1797 2.32031H1.82031V20.6797H20.1797V2.32031Z" fill="white"/>
+      <path d="M10.5043 2.33395C15.5663 2.06016 19.892 5.94172 20.166 11.0038C20.4401 16.0659 16.5587 20.3917 11.4968 20.6661C6.43426 20.9403 2.10803 17.0586 1.83398 11.9961C1.55991 6.93378 5.44182 2.60775 10.5043 2.33395Z" fill="black"/>
+      <path d="M10.8468 5.0636C12.8191 4.96615 14.6663 5.89958 15.938 7.37568C17.1217 8.74967 17.5504 10.5298 17.4264 12.3118C17.3842 12.9157 17.0927 13.5384 16.6244 13.9271C16.1947 14.2844 15.6403 14.4555 15.0841 14.4022C14.666 14.3588 14.269 14.1967 13.9401 13.9347C12.4566 12.7537 13.7529 11.3834 12.6406 10.0673C12.2639 9.62144 11.7241 9.34568 11.142 9.30186C10.565 9.25854 9.99435 9.4466 9.55617 9.82468C9.12032 10.2018 8.85252 10.7368 8.81176 11.3117C8.76746 11.8934 8.96029 12.4683 9.34645 12.9057C9.72459 13.3393 10.2615 13.6023 10.8359 13.6352C11.8264 13.6993 12.4398 13.451 13.3126 14.2156C14.1926 14.9867 14.2636 16.3216 13.4959 17.2017C13.0669 17.6938 12.4056 17.9195 11.7644 17.9571C9.86051 18.064 8.13901 17.5791 6.71405 16.3101C3.99835 13.8918 3.81562 9.70093 6.32796 7.06816C7.59609 5.73925 9.01084 5.15031 10.8468 5.0636Z" fill="white"/>
     </g>
-    <defs>
-      <clipPath id="clip0_54_715">
-        <rect width="300" height="300" fill="white"/>
-      </clipPath>
-    </defs>
   </svg>
 );
 
@@ -1058,8 +1201,8 @@ const ServicePreview = ({
         {/* Main Content Area */}
         <div className="absolute left-[551px] top-[90px]">
           <div className="rounded-[12px] border border-[#E8E8E8] relative">
-            <ResponsiveBanner>
-              <BannerCanvas 
+            <ResponsiveBanner height={variation.bannerHeight || 216}>
+              <BannerCanvas
                 variation={variation}
                 headline={headline}
                 sub={sub}
@@ -1213,8 +1356,8 @@ function HomeView({
   activeVariationId: number,
   bgImage: string | undefined,
   setBgImage: (v: string | undefined) => void,
-  language: 'ko' | 'ja',
-  setLanguage: (lang: 'ko' | 'ja') => void
+  language: 'ko' | 'ja' | 'en' | 'tw',
+  setLanguage: (lang: 'ko' | 'ja' | 'en' | 'tw') => void
 }) {
   const [copies, setCopies] = useState<BannerCopy[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1222,54 +1365,258 @@ function HomeView({
   const [error, setError] = useState('');
 
   const [mode, setMode] = useState<'ai' | 'manual'>('manual');
-  const [manualHeadline, setManualHeadline] = useState(language === 'ja' ? 'FY2025 下半期 コンプライアンス教育のご案内' : 'FY2025 하반기 컴플라이언스 교육 안내');
-  const [manualSub, setManualSub] = useState(language === 'ja' ? 'LINE+ 全従業員対象の必須教育です。' : 'LINE+ 모든 임직원 대상 필수 교육입니다.');
-  const [manualCta, setManualCta] = useState(language === 'ja' ? '詳細を見る' : 'Learn More');
-  const [manualLabel, setManualLabel] = useState('');
+  const [manualHeadline, setManualHeadline] = useState(
+    language === 'ja' ? '情報セキュリティ教育のご案内'
+    : language === 'en' ? 'Information Security Training'
+    : language === 'tw' ? '下半年必须信息安全教育指南'
+    : '필수 정보 보안교육 안내'
+  );
+  const [manualSub, setManualSub] = useState(
+    language === 'ja' ? '全従業員対象の必須教育です'
+    : language === 'en' ? 'Mandatory training'
+    : language === 'tw' ? '全體員工必修教育'
+    : '모든 임직원 대상 필수 교육'
+  );
+  const [manualCta, setManualCta] = useState(language === 'ja' ? '詳細を見る' : language === 'tw' ? '了解更多' : 'Learn More');
+  const [manualLabel, setManualLabel] = useState('EDUCATION');
   const [manualDate, setManualDate] = useState('');
   const [align, setAlign] = useState<'left' | 'center'>('left');
   const [showServicePreview, setShowServicePreview] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [dynamicHeadlineSize, setDynamicHeadlineSize] = useState<number | null>(null);
+  const headlineTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Title textarea: 내용에 따라 자동 높이 조절
+  useEffect(() => {
+    const ta = headlineTextareaRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = `${Math.max(ta.scrollHeight, 50)}px`;
+  }, [manualHeadline]);
+
+  const koDefaults = ['필수 정보 보안교육 안내', 'FY2025 하반기 컴플라이언스 교육 안내'];
+  const jaDefaults = ['情報セキュリティ教育のご案内', 'FY2025 下半期 コンプライアンス教育のご案内'];
+  const enDefaults = ['Information Security Training', 'FY2025 Compliance Training Notice'];
+  const twDefaults = ['下半年必须信息安全教育指南', 'FY2025 下半年合規教育通知'];
+  const koSubDefaults = ['모든 임직원 대상 필수 교육', 'LINE+ 모든 임직원 대상 필수 교육입니다.'];
+  const jaSubDefaults = ['全従業員対象の必須教育です', 'LINE+ 全従業員対象の必須教育です。'];
+  const enSubDefaults = ['Mandatory training', 'Mandatory training'];
+  const twSubDefaults = ['全體員工必修教育', 'LINE+ 全體員工必修課程。'];
+  const allHeadlineDefaults = [...koDefaults, ...jaDefaults, ...enDefaults, ...twDefaults];
+  const allSubDefaults = [...koSubDefaults, ...jaSubDefaults, ...enSubDefaults, ...twSubDefaults];
 
   useEffect(() => {
-    if (manualHeadline === 'FY2025 하반기 컴플라이언스 교육 안내' || manualHeadline === 'FY2025 下半期 コンプライアンス教育のご案内') {
-      setManualHeadline(language === 'ja' ? 'FY2025 下半期 コンプライアンス教育のご案内' : 'FY2025 하반기 컴플라이언스 교육 안내');
-    }
-    if (manualSub === 'LINE+ 모든 임직원 대상 필수 교육입니다.' || manualSub === 'LINE+ 全従業員対象の必須教育です。') {
-      setManualSub(language === 'ja' ? 'LINE+ 全従業員対象の必須教育です。' : 'LINE+ 모든 임직원 대상 필수 교육입니다.');
-    }
-    if (manualCta === 'Learn More' || manualCta === '詳細を見る') {
-      setManualCta(language === 'ja' ? '詳細を見る' : 'Learn More');
-    }
+    setManualHeadline(
+      language === 'ja' ? '情報セキュリティ教育のご案内'
+      : language === 'en' ? 'Information Security Training'
+      : language === 'tw' ? '下半年必须信息安全教育指南'
+      : '필수 정보 보안교육 안내'
+    );
+    setManualSub(
+      language === 'ja' ? '全従業員対象の必須教育です'
+      : language === 'en' ? 'Mandatory training'
+      : language === 'tw' ? '全體員工必修教育'
+      : '모든 임직원 대상 필수 교육'
+    );
+    setManualCta(language === 'ja' ? '詳細を見る' : language === 'tw' ? '了解更多' : 'Learn More');
+    setManualLabel('EDUCATION');
   }, [language]);
 
   const activeVariation = variations.find(v => v.id === activeVariationId) || variations[0];
+
+  // Auto-select variation based on actual rendered line count (new-guide types only)
+  const selectedCopyHeadline = selectedCopy?.headline || '';
+  const activeVariationIdRef = useRef(activeVariationId);
+  activeVariationIdRef.current = activeVariationId;
+  useEffect(() => {
+    let cancelled = false;
+    const currentHeadline = mode === 'ai' ? selectedCopyHeadline : manualHeadline;
+    if (!currentHeadline) return;
+    const newGuideVariations = variations.filter(v => v.layoutType === 'new-guide');
+    if (newGuideVariations.length === 0) return;
+    const currentVariation = variations.find(v => v.id === activeVariationIdRef.current);
+    const currentIsNewGuide = currentVariation?.layoutType === 'new-guide';
+    if (!currentIsNewGuide) return;
+
+    // Use exact same font-family as the banner renders with
+    const langFont = language === 'ja'
+      ? "'Pretendard JP', sans-serif"
+      : language === 'tw'
+      ? "'Noto Sans TC', 'PingFang TC', sans-serif"
+      : "'LINE Seed Sans', 'LINESeedSansKR', sans-serif";
+
+    // Use exact same font-weight as the banner (TW uses 800, others use 700)
+    const langWeight = language === 'tw' ? 800 : 700;
+
+    // Debounce: wait 150ms after last keystroke before measuring
+    const timer = setTimeout(async () => {
+      if (cancelled) return;
+
+      // Wait for ALL fonts to be fully loaded
+      try {
+        await document.fonts.load(`${langWeight} 29px ${langFont}`);
+      } catch (_) { /* fallback */ }
+      await document.fonts.ready;
+      if (cancelled) return;
+
+      // Create a single reusable measurement div
+      const div = document.createElement('div');
+      div.style.position = 'absolute';
+      div.style.visibility = 'hidden';
+      // CENTER: 405px (335+35+35), LEFT: 740 - 280(image) - 54(paddingLeft) - 35(paddingRight) = 371px
+      div.style.width = align === 'center' ? '405px' : '371px';
+      div.style.fontFamily = langFont;
+      div.style.fontWeight = String(langWeight);
+      div.style.wordBreak = 'break-all';
+      div.style.overflowWrap = 'break-word';
+      div.style.whiteSpace = 'pre-wrap';
+      div.textContent = currentHeadline;
+      document.body.appendChild(div);
+
+      // Force layout + wait one frame for font rendering
+      void div.offsetHeight;
+      await new Promise(r => requestAnimationFrame(r));
+      if (cancelled) { document.body.removeChild(div); return; }
+
+      // 줄수 측정 + 바이너리 서치 헬퍼 (같은 div 재사용)
+      const measureAt = (fontSize: number, lineHeight: number) => {
+        div.style.fontSize = `${fontSize}px`;
+        div.style.lineHeight = `${lineHeight}px`;
+        void div.offsetHeight;
+        return Math.round(div.scrollHeight / lineHeight);
+      };
+      const binarySearch = (lo: number, hi: number, maxLines: number) => {
+        while (hi - lo > 0.5) {
+          const mid = (lo + hi) / 2;
+          const lh = Math.round(mid * 1.31);
+          if (measureAt(mid, lh) <= maxLines) lo = mid;
+          else hi = mid;
+        }
+        return Math.floor(lo * 2) / 2; // 0.5px 단위 내림
+      };
+
+      const lines21 = measureAt(21, 28);
+      const lines23 = measureAt(23, 30);
+      const lines29 = lines23 <= 1 ? measureAt(29, 38) : 99;
+
+      document.body.removeChild(div);
+      if (cancelled) return;
+
+      let targetTitle: string;
+      let newDynamicSize: number | null = null;
+
+      if (lines23 <= 1) {
+        // Single Short: 23~29px 바이너리 서치로 1줄 최대 폰트
+        targetTitle = 'Single Short';
+        if (lines29 <= 1) {
+          newDynamicSize = null; // 29px 기본값
+        } else {
+          // div가 이미 제거됐으므로 재생성
+          const d2 = document.createElement('div');
+          d2.style.cssText = div.style.cssText;
+          d2.textContent = currentHeadline;
+          document.body.appendChild(d2);
+          const measureAt2 = (fs: number, lh: number) => {
+            d2.style.fontSize = `${fs}px`; d2.style.lineHeight = `${lh}px`;
+            void d2.offsetHeight;
+            return Math.round(d2.scrollHeight / lh);
+          };
+          let lo = 23, hi = 29;
+          while (hi - lo > 0.5) {
+            const mid = (lo + hi) / 2;
+            const lh = Math.round(mid * 1.31);
+            if (measureAt2(mid, lh) <= 1) lo = mid; else hi = mid;
+          }
+          document.body.removeChild(d2);
+          newDynamicSize = Math.floor(lo * 2) / 2;
+        }
+      } else if (lines21 <= 2) {
+        // Two-line: 21~23px 바이너리 서치로 2줄 최대 폰트
+        targetTitle = 'Two-line';
+        if (lines23 <= 2) {
+          newDynamicSize = null; // 23px 기본값
+        } else {
+          const d2 = document.createElement('div');
+          d2.style.cssText = div.style.cssText;
+          d2.textContent = currentHeadline;
+          document.body.appendChild(d2);
+          let lo = 21, hi = 23;
+          while (hi - lo > 0.5) {
+            const mid = (lo + hi) / 2;
+            const lh = Math.round(mid * 1.31);
+            d2.style.fontSize = `${mid}px`; d2.style.lineHeight = `${lh}px`;
+            void d2.offsetHeight;
+            if (Math.round(d2.scrollHeight / lh) <= 2) lo = mid; else hi = mid;
+          }
+          document.body.removeChild(d2);
+          newDynamicSize = Math.floor(lo * 2) / 2;
+        }
+      } else {
+        // Three-line: 21px 고정
+        targetTitle = 'Three-line';
+        newDynamicSize = null;
+      }
+
+      const target = newGuideVariations.find(v => v.title === targetTitle);
+      if (target && target.id !== activeVariationIdRef.current) onSelectVariation(target.id);
+      setDynamicHeadlineSize(newDynamicSize);
+    }, 0);
+
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [manualHeadline, mode, selectedCopyHeadline, language, align]);
 
   const bannerRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = async () => {
     if (!bannerRef.current) return;
     try {
-      const dataUrl = await toPng(bannerRef.current, { cacheBust: true, pixelRatio: 2 });
+      const bannerH = activeVariation.bannerHeight || 216;
+
+      const dataUrl = await toPng(bannerRef.current, {
+        cacheBust: true,
+        width: 740,
+        height: bannerH,
+        pixelRatio: 3,
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left',
+          width: '740px',
+          height: `${bannerH}px`,
+          borderRadius: '0px',
+          overflow: 'hidden',
+        },
+        onclone: (_doc: Document, cloned: HTMLElement) => {
+          const all = [cloned, ...Array.from(cloned.querySelectorAll('*'))] as HTMLElement[];
+          all.forEach(el => {
+            el.style.setProperty('border-radius', '0px', 'important');
+            el.style.setProperty('clip-path', 'none', 'important');
+          });
+        },
+        filter: (node: HTMLElement) => {
+          return !node.classList?.contains('banner-shadow-wrapper');
+        }
+      });
+
       const link = document.createElement('a');
       link.download = 'banner.png';
       link.href = dataUrl;
       link.click();
     } catch (err) {
+      setIsExporting(false);
       console.error('Failed to download image', err);
     }
   };
 
   const presetBackgrounds = [
     { id: 'none', label: 'None', url: '' },
-    { id: 'bg1_acd', label: 'BG 1 (ACD)', url: '/BG_Test_1(ACD).png' },
-    { id: 'bg1_b', label: 'BG 1 (B)', url: '/BG_Test_1(B).png' },
-    { id: 'bg2_acd', label: 'BG 2 (ACD)', url: '/BG_Test_2(ACD).png' },
-    { id: 'bg2_b', label: 'BG 2 (B)', url: '/BG_Test_2(B).png' },
-    { id: 'bg3_acd', label: 'BG 3 (ACD)', url: '/BG_Test_3(ACD).png' },
-    { id: 'bg3_b', label: 'BG 3 (B)', url: '/BG_Test_3(B).png' },
-    { id: 'bg4_acd', label: 'BG 4 (ACD)', url: '/BG_Test_4(ACD).png' },
-    { id: 'bg4_b', label: 'BG 4 (B)', url: '/BG_Test_4(B).png' },
-    { id: 'bg5_b', label: 'BG 5 (B)', url: '/BG_Test_5(B).png' },
+    { id: 'sample1', label: 'Light Bulb', url: '/Sample1.png' },
+    { id: 'sample2', label: 'DNA', url: '/Sample2.png' },
+    { id: 'sample3', label: 'Cloud Docs', url: '/Sample3.png' },
+    { id: 'sample4', label: 'Rocket', url: '/Sample4.png' },
+    { id: 'sample5', label: 'Flag', url: '/Sample5.png' },
+    { id: 'sample6', label: 'Target', url: '/Sample6.png' },
+    { id: 'sample7', label: 'Arrow Rider', url: '/Sample7.png' },
+    { id: 'sample8', label: 'Space Shuttle', url: '/Sample8.png' },
   ];
 
   useEffect(() => {
@@ -1285,7 +1632,7 @@ function HomeView({
     }
   }, [mode, manualHeadline, manualSub, manualCta, align, manualLabel, manualDate]);
 
-  const handleAICopy = async (lang: 'ko' | 'ja') => {
+  const handleAICopy = async (lang: 'ko' | 'ja' | 'en' | 'tw') => {
     if (!prompt.trim()) { 
       setError('Please enter a banner topic first.'); 
       return; 
@@ -1302,6 +1649,7 @@ function HomeView({
         onGenerate(result[0]);
       }
     } catch (err) {
+      console.error('AI generation error:', err);
       setError('AI connection failed. Please enter manually.');
     } finally {
       setLoading(false);
@@ -1314,77 +1662,101 @@ function HomeView({
     <div className="min-h-screen md:h-screen bg-white font-sans text-black flex flex-col md:flex-row md:overflow-hidden">
       {/* Left Panel: Controls */}
       <aside className="sidebar-panel border-b md:border-r border-gray-200 bg-white flex flex-col z-20 shadow-lg">
-        <header className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={onReset}>
-            <CustomLogo className="h-5" />
-            <span className="font-bold tracking-tight text-lg">Creative Banner Studio</span>
-          </div>
-          <div className="flex gap-1.5 items-center">
-            <div className="flex bg-gray-100 p-0.5 rounded-full">
-              <button 
-                onClick={() => {
-                  setLanguage('ko');
-                  setSelectedCopy(null);
-                  if (mode === 'ai') handleAICopy('ko');
-                }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'ko' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
-              >
-                KO
-              </button>
-              <button 
-                onClick={() => {
-                  setLanguage('ja');
-                  setSelectedCopy(null);
-                  if (mode === 'ai') handleAICopy('ja');
-                }}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'ja' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
-              >
-                JA
-              </button>
-            </div>
+        <header className="px-6 py-6 flex items-center" style={{ gap: '29.9px', height: '77px', borderBottom: '1px solid #E8E8E8' }}>
+          <div className="flex items-center cursor-pointer" style={{ gap: '4px' }} onClick={onReset}>
+            <CustomLogo style={{ width: '22px', height: '22px' }} />
+            <span style={{ fontFamily: "'LINE Seed Sans', sans-serif", fontWeight: 700, fontSize: '20px', lineHeight: '28px', letterSpacing: '-0.45px', color: '#000000' }}>Creative Banner Studio</span>
           </div>
         </header>
 
-        <div className="flex-1 md:overflow-y-auto p-6 space-y-8 custom-scrollbar">
+        <div className="flex-1 md:overflow-y-auto custom-scrollbar" style={{ padding: '18px 24px 0px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+
           {/* Mode Toggle */}
           <section>
-            <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
-              <button 
-                onClick={() => setMode('manual')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'manual' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+            <div className="relative" style={{ width: '100%', height: '45px', background: '#F5F5F5', borderRadius: '50px' }}>
+              <div
+                className="absolute transition-all duration-200"
+                style={{
+                  width: 'calc(50% - 3px)', height: '39px', top: '3px',
+                  left: mode === 'manual' ? '3px' : 'calc(50% + 0px)',
+                  background: '#FFFFFF',
+                  boxShadow: '0px 1px 2px rgba(0,0,0,0.05)',
+                  borderRadius: '50px',
+                }}
+              />
+              <button
+                onClick={() => { setMode('manual'); setCopies([]); setSelectedCopy(null); setPrompt(''); }}
+                className="absolute"
+                style={{
+                  left: 0, top: 0, width: '50%', height: '45px',
+                  fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', lineHeight: '19px',
+                  color: mode === 'manual' ? '#000000' : '#949494',
+                  background: 'transparent', border: 'none', cursor: 'pointer', zIndex: 1,
+                }}
               >
-                <Type size={14} /> Manual Entry
+                Editer
               </button>
-              <button 
+              <button
                 onClick={() => setMode('ai')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${mode === 'ai' ? 'bg-white shadow-sm text-black' : 'text-gray-400'}`}
+                className="absolute"
+                style={{
+                  left: '50%', top: 0, width: '50%', height: '45px',
+                  fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', lineHeight: '19px',
+                  color: mode === 'ai' ? '#000000' : '#949494',
+                  background: 'transparent', border: 'none', cursor: 'pointer', zIndex: 1,
+                }}
               >
-                <Sparkles size={14} /> AI Copywriter
+                AI Writer
               </button>
             </div>
           </section>
 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '35px', width: '100%', paddingBottom: '30px' }}>
           {mode === 'ai' ? (
             <>
-              {/* Section 1: Topic */}
-              <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">1. Topic</h3>
-                  {loading && <RefreshCw size={14} className="animate-spin text-black" />}
+              {/* Section 1: Contents */}
+              <section style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <div className="flex items-center justify-between">
+                  <h3 style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', lineHeight: '16px', color: '#1F1F1F' }}>Contents</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {loading && <RefreshCw size={14} className="animate-spin text-black" />}
+                    <div className="flex items-start rounded-full" style={{ background: '#F5F5F5', padding: '2px', gap: '0.01px', width: '168px', height: '28px' }}>
+                      {(['ko', 'ja', 'en', 'tw'] as const).map((lang, i) => (
+                        <button key={lang}
+                          onClick={() => { setLanguage(lang); setSelectedCopy(null); setCopies([]); setPrompt(''); }}
+                          className="flex items-center justify-center rounded-full font-bold"
+                          style={{ padding: '4px 10px', width: '40px', height: '24px', fontSize: '12px', lineHeight: '16px', color: language === lang ? '#000000' : '#949494', fontFamily: 'Pretendard, sans-serif', border: 'none', cursor: 'pointer', background: language === lang ? '#FFFFFF' : 'transparent', boxShadow: language === lang ? '0px 1px 2px rgba(0,0,0,0.1)' : 'none' }}
+                        >{['KR','JP','EN','TW'][i]}</button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="relative group">
                   <textarea
                     value={prompt}
                     onChange={e => { setPrompt(e.target.value); setError(''); }}
                     placeholder="What are you announcing?"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-5 text-lg focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all h-32 resize-none placeholder-gray-300"
+                    className="w-full outline-none transition-all resize-none"
+                    style={{
+                      height: '128px',
+                      padding: '16px',
+                      border: '1px solid #E8E8E8',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      lineHeight: '20px',
+                      color: '#1F1F1F',
+                      fontFamily: 'Pretendard, sans-serif',
+                      background: '#FFFFFF',
+                    }}
                   />
                   <button 
-                    onClick={handleAICopy}
+                    onClick={() => handleAICopy(language)}
                     disabled={loading || !prompt.trim()}
-                    className="absolute bottom-4 right-4 bg-black text-white p-3 rounded-xl hover:bg-gray-800 disabled:opacity-30 transition-all shadow-lg"
+                    className="absolute bg-black text-white p-2.5 rounded-xl hover:bg-gray-800 disabled:opacity-30 transition-all shadow-lg" style={{ bottom: '16px', right: '12px' }}
                   >
-                    <Sparkles size={18} />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+                      <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+                    </svg>
                   </button>
                 </div>
                 {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
@@ -1398,36 +1770,51 @@ function HomeView({
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-4"
                   >
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">2. AI Copy Suggestions</h3>
+                    <h3 style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', lineHeight: '16px', color: '#1F1F1F' }}>AI Copy Suggestions</h3>
                     <div className="space-y-3">
                       {copies.map((c, i) => (
                         <motion.div
                           key={i}
                           whileHover={{ x: 4 }}
-                          onClick={() => { 
-                            setSelectedCopy(c); 
+                          onClick={() => {
+                            setSelectedCopy(c);
                             onGenerate(c);
                           }}
-                          className={`p-5 cursor-pointer rounded-2xl border-2 transition-all ${
-                            selectedCopy?.headline === c.headline 
-                              ? 'border-black bg-gray-50' 
-                              : 'border-gray-50 bg-gray-50 hover:border-gray-200'
-                          }`}
+                          style={{
+                            position: 'relative',
+                            padding: '20px',
+                            cursor: 'pointer',
+                            borderRadius: '8px',
+                            border: selectedCopy?.headline === c.headline ? '1px solid #000000' : '1px solid #E8E8E8',
+                            background: '#F9F9F9',
+                            transition: 'border-color 0.15s',
+                          }}
                         >
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-bold text-black uppercase tracking-widest px-2 py-0.5 bg-gray-200 rounded-full">{c.tone}</span>
-                              </div>
-                              <h4 className="text-base font-bold leading-tight">{c.headline}</h4>
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">{c.sub}</p>
-                            </div>
-                            {selectedCopy?.headline === c.headline && (
-                              <div className="bg-black p-1 rounded-full text-white">
-                                <Check size={12} />
-                              </div>
-                            )}
+                          <div style={{ paddingRight: selectedCopy?.headline === c.headline ? '60px' : '0' }}>
+                            <h4 style={{ fontSize: '14px', fontWeight: 700, lineHeight: '1.3', margin: 0 }}>{c.headline}</h4>
+                            <p style={{ fontSize: '11px', color: '#8D8D8D', marginTop: '4px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>{c.sub}</p>
                           </div>
+                          {selectedCopy?.headline === c.headline && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setManualHeadline(c.headline);
+                                setManualSub(c.sub);
+                                setManualCta(c.cta || 'Learn More');
+                                setManualLabel(c.label || 'Must Lead');
+                                setMode('manual');
+                              }}
+                              style={{
+                                position: 'absolute', top: '50%', transform: 'translateY(-50%)', right: '20px',
+                                padding: '4px 10px', borderRadius: '20px', border: '1px solid #E8E8E8',
+                                background: '#FFFFFF', fontSize: '11px', fontWeight: 600, color: '#333',
+                                fontFamily: 'Pretendard, sans-serif', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '4px',
+                              }}
+                            >
+                              Edit
+                            </button>
+                          )}
                         </motion.div>
                       ))}
                     </div>
@@ -1438,170 +1825,217 @@ function HomeView({
           ) : (
             <>
               {/* Manual Entry Section */}
-              <section className="space-y-6">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">1. Content Details</h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Headline</label>
-                    <input 
-                      type="text"
+              <section style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                {/* Contents header with KO/JA toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h3 style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', lineHeight: '16px', color: '#1F1F1F', margin: 0 }}>Contents</h3>
+                  <div className="flex items-start rounded-full" style={{ background: '#F5F5F5', padding: '2px', gap: '0.01px', width: '168px', height: '28px' }}>
+                    {(['ko', 'ja', 'en', 'tw'] as const).map((lang, i) => (
+                      <button key={lang}
+                        onClick={() => { setLanguage(lang); setSelectedCopy(null); setCopies([]); setPrompt(''); }}
+                        className="flex items-center justify-center rounded-full font-bold transition-all"
+                        style={{ padding: '4px 10px', width: '40px', height: '24px', fontSize: '12px', lineHeight: '16px', color: language === lang ? '#000000' : '#949494', fontFamily: 'Pretendard, sans-serif', border: 'none', cursor: 'pointer', background: language === lang ? '#FFFFFF' : 'transparent', boxShadow: language === lang ? '0px 1px 2px rgba(0,0,0,0.1)' : 'none' }}
+                      >{['KR','JP','EN','TW'][i]}</button>
+                    ))}
+                  </div>
+                </div>
+                {(() => {
+                  const headlineMax = undefined;
+                  const labelMax = activeVariation.layoutType === 'new-guide' ? 22 : undefined;
+                  const subMax = activeVariation.layoutType === 'new-guide' ? 20 : undefined;
+                  return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <div className="flex items-center justify-between" style={{ marginBottom: '8px' }}>
+                      <label style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '12px', lineHeight: '15px', color: '#8D8D8D' }}>Title</label>
+                      {headlineMax && <span style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '11px', color: manualHeadline.length > headlineMax ? '#EF4444' : '#8D8D8D' }}>{manualHeadline.length}/{headlineMax}</span>}
+                    </div>
+                    <textarea
+                      ref={headlineTextareaRef}
                       value={manualHeadline}
                       onChange={e => setManualHeadline(e.target.value)}
                       placeholder="Enter headline"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      rows={1}
+                      className="w-full outline-none transition-all resize-none"
+                      style={{ padding: '16px', border: '1px solid #E8E8E8', borderRadius: '8px', fontFamily: 'Pretendard, sans-serif', fontWeight: 500, fontSize: '15px', lineHeight: '18px', color: '#000000', background: 'white', boxSizing: 'border-box', overflow: 'hidden' }}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sub-copy</label>
-                    <input 
+                  <div>
+                    <div className="flex items-center justify-between" style={{ marginBottom: '8px' }}>
+                      <label style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '12px', lineHeight: '15px', color: '#8D8D8D' }}>Description</label>
+                      {subMax && <span style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '11px', color: manualSub.length > subMax ? '#EF4444' : '#8D8D8D' }}>{manualSub.length}/{subMax}</span>}
+                    </div>
+                    <input
                       type="text"
                       value={manualSub}
-                      onChange={e => setManualSub(e.target.value)}
+                      onChange={e => setManualSub(subMax ? e.target.value.slice(0, subMax) : e.target.value)}
                       placeholder="Enter sub-copy"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      maxLength={subMax}
+                      className="w-full outline-none transition-all"
+                      style={{ padding: '16px', height: '52px', border: '1px solid #E8E8E8', borderRadius: '8px', fontFamily: 'Pretendard, sans-serif', fontWeight: 500, fontSize: '15px', lineHeight: '18px', color: '#000000', background: 'white', boxSizing: 'border-box' }}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Top Label</label>
-                    <input 
+                  <div>
+                    <div className="flex items-center justify-between" style={{ marginBottom: '8px' }}>
+                      <label style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '12px', lineHeight: '15px', color: '#8D8D8D' }}>Sub title</label>
+                      {labelMax && <span style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '11px', color: manualLabel.length > labelMax ? '#EF4444' : '#8D8D8D' }}>{manualLabel.length}/{labelMax}</span>}
+                    </div>
+                    <input
                       type="text"
-                      value={manualLabel} 
-                      onChange={e => setManualLabel(e.target.value)}
+                      value={manualLabel}
+                      onChange={e => setManualLabel(labelMax ? e.target.value.slice(0, labelMax) : e.target.value)}
                       placeholder="e.g. Compliance"
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                      maxLength={labelMax}
+                      className="w-full outline-none transition-all"
+                      style={{ padding: '16px', height: '52px', border: '1px solid #E8E8E8', borderRadius: '8px', fontFamily: 'Pretendard, sans-serif', fontWeight: 500, fontSize: '15px', lineHeight: '18px', color: '#000000', background: 'white', boxSizing: 'border-box' }}
                     />
                   </div>
                   {(activeVariation.title === 'Type C' || activeVariation.title === 'Type C-2' || activeVariation.title === 'Type D') && (
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Date</label>
-                      <input 
+                    <div>
+                      <label style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '12px', lineHeight: '15px', color: '#8D8D8D', display: 'block', marginBottom: '8px' }}>Date</label>
+                      <input
                         type="text"
-                        value={manualDate} 
+                        value={manualDate}
                         onChange={e => setManualDate(e.target.value)}
                         placeholder="e.g. 2026.3.01 - 3.08"
-                        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-black/10 focus:border-black outline-none transition-all font-medium"
+                        className="w-full outline-none transition-all"
+                        style={{ padding: '16px', height: '52px', border: '1px solid #E8E8E8', borderRadius: '8px', fontFamily: 'Pretendard, sans-serif', fontWeight: 500, fontSize: '15px', lineHeight: '18px', color: '#000000', background: 'white', boxSizing: 'border-box' }}
                       />
                     </div>
                   )}
                 </div>
+                  );
+                })()}
               </section>
             </>
           )}
 
-          {/* Section 3: Design Style */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{mode === 'ai' ? '3' : '2'}. Design Style</h3>
-            </div>
-            <div className="flex flex-col gap-2">
-              {variations.map(v => (
-                <motion.div
-                  key={v.id}
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => onSelectVariation(v.id)}
-                  className={`rounded-2xl border-2 cursor-pointer transition-all p-3 ${
-                    activeVariationId === v.id
-                      ? 'border-black bg-gray-50'
-                      : 'border-transparent bg-gray-50 hover:border-gray-200'
-                  }`}
-                >
-                  {/* Banner preview thumbnail */}
-                  <BannerThumbnail
-                    variation={v}
-                    headline={manualHeadline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
-                    sub={manualSub || (language === 'ja' ? 'サブコピーを入力してください' : 'Enter sub-copy here')}
-                    ctaText={manualCta}
-                    align={align}
-                    label={manualLabel}
-                    date={manualDate}
-                    bgImage={''}
-                    language={language}
-                  />
-                  {/* Type info - inside outer box */}
-                  <div className="pt-2 pb-1 px-1">
-                    <div className="text-sm font-bold text-gray-900">{v.title}</div>
-                  </div>
-                </motion.div>
-              ))}
+          {/* Section: Design Style - Left / Center */}
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', lineHeight: '16px', color: '#1F1F1F' }}>Design Style</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
+              {/* Left style card */}
+              <div
+                onClick={() => setAlign('left')}
+                className="cursor-pointer transition-all w-full"
+                style={{
+                  borderRadius: '8px',
+                  border: align === 'left' ? '1.5px solid #000000' : '1px solid #E8E8E8',
+                  overflow: 'hidden',
+                }}
+              >
+                <BannerThumbnail
+                  variation={activeVariation}
+                  headline={(mode === 'ai' && selectedCopy?.headline) || manualHeadline || (language === 'ja' ? '情報セキュリティ教育のご案内' : language === 'en' ? 'Information Security Training' : '필수 정보 보안교육 안내')}
+                  sub={(mode === 'ai' && selectedCopy?.sub) || manualSub || (language === 'ja' ? '全従業員対象の必須教育です' : language === 'en' ? 'Mandatory training' : '모든 임직원 대상 필수 교육')}
+                  ctaText={(mode === 'ai' && selectedCopy?.cta) || manualCta}
+                  align="left"
+                  label={(mode === 'ai' && selectedCopy?.label) || manualLabel}
+                  date={(mode === 'ai' && selectedCopy?.date) || manualDate}
+                  bgImage={bgImage}
+                  language={language}
+                />
+              </div>
+              {/* Center style card */}
+              <div
+                onClick={() => setAlign('center')}
+                className="cursor-pointer transition-all w-full"
+                style={{
+                  borderRadius: '8px',
+                  border: align === 'center' ? '1.5px solid #000000' : '1px solid #E8E8E8',
+                  overflow: 'hidden',
+                }}
+              >
+                <BannerThumbnail
+                  variation={activeVariation}
+                  headline={(mode === 'ai' && selectedCopy?.headline) || manualHeadline || (language === 'ja' ? '情報セキュリティ教育のご案内' : language === 'en' ? 'Information Security Training' : '필수 정보 보안교육 안내')}
+                  sub={(mode === 'ai' && selectedCopy?.sub) || manualSub || (language === 'ja' ? '全従業員対象の必須教育です' : language === 'en' ? 'Mandatory training' : '모든 임직원 대상 필수 교육')}
+                  ctaText={(mode === 'ai' && selectedCopy?.cta) || manualCta}
+                  align="center"
+                  label={(mode === 'ai' && selectedCopy?.label) || manualLabel}
+                  date={(mode === 'ai' && selectedCopy?.date) || manualDate}
+                  bgImage={''}
+                  language={language}
+                />
+              </div>
             </div>
           </section>
 
-          {/* Section 4: Background Image */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{mode === 'ai' ? '4' : '3'}. Background Image</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Uploaded Image Preview */}
-              {bgImage && !presetBackgrounds.find(bg => bg.url === bgImage) && (
-                <button
-                  onClick={() => setBgImage(bgImage)}
-                  className={`w-full aspect-[740/216] rounded-xl border-2 transition-all overflow-hidden relative border-black`}
-                >
-                  <img src={bgImage} alt="Uploaded" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <span className="text-[8px] text-white font-bold uppercase">Uploaded</span>
-                  </div>
-                </button>
-              )}
-              {presetBackgrounds.filter(bg => {
-                if (bg.id === 'none') return true;
-                const ruleMatch = bg.label.match(/\(([^)]+)\)/);
-                const allowed = ruleMatch ? ruleMatch[1] : '';
-                
-                // If no rule is present in the label, do not show it.
-                if (!ruleMatch) return false;
-                
-                if (activeVariation.title.includes('Type A')) return allowed.includes('A');
-                if (activeVariation.title.includes('Type B')) return allowed.includes('B');
-                if (activeVariation.title.includes('Type C')) return allowed.includes('C');
-                if (activeVariation.title.includes('Type D')) return allowed.includes('D');
-                
-                return false;
-              }).map(bg => (
+          {/* Info: center alignment cannot use images */}
+          {align === 'center' && (
+            <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h3 style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', lineHeight: '16px', color: '#1F1F1F', margin: 0 }}>Image</h3>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8D8D8D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}>
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span style={{ fontFamily: 'Pretendard, sans-serif', fontSize: '12px', lineHeight: '18px', color: '#8D8D8D' }}>
+                  Center 타입은 이미지를 사용할 수 없습니다.
+                </span>
+              </div>
+            </section>
+          )}
+
+          {/* Section: Thumbnail - only for Left alignment */}
+          {!(activeVariation.layoutType === 'new-guide' && align === 'center') && (
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 700, fontSize: '16px', lineHeight: '16px', color: '#1F1F1F' }}>Image</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              {presetBackgrounds.filter(bg => bg.id !== 'none').map(bg => (
                 <button
                   key={bg.id}
                   onClick={() => setBgImage(bg.url)}
-                  className={`w-full aspect-[740/216] rounded-xl border-2 transition-all overflow-hidden relative ${
-                    bgImage === bg.url ? 'border-black' : 'border-gray-100'
-                  }`}
+                  className="overflow-hidden relative transition-all"
+                  style={{
+                    aspectRatio: '1 / 1',
+                    borderRadius: '6px',
+                    border: bgImage === bg.url ? '1.5px solid #000000' : 'none',
+                    background: '#F5F6F8',
+                    padding: 0,
+                    cursor: 'pointer',
+                    width: '100%',
+                  }}
                 >
-                  {bg.url ? (
-                    <img src={bg.url} alt={bg.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  ) : (
-                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                      <X size={12} className="text-gray-400" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="text-[8px] text-white font-bold uppercase">{bg.label}</span>
-                  </div>
+                  <img src={bg.url} alt={bg.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </button>
               ))}
             </div>
           </section>
+          )}
+
+          </div>{/* end sections wrapper */}
 
         </div>
 
-        <footer className="p-6 border-t border-gray-100 bg-gray-50/50 flex flex-col gap-3">
-          <Button 
-            variant="line"
+        <footer style={{ padding: '12px 24px 18px', background: '#FFFFFF', height: '83px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          <button
             onClick={handleDownload}
-            disabled={!selectedCopy || showVariations}
-            className="w-full py-4 rounded-2xl bg-black text-white hover:bg-gray-800 shadow-lg"
+            disabled={showVariations}
+            className="w-full flex items-center justify-center transition-all hover:opacity-90 disabled:opacity-30"
+            style={{
+              gap: '2px', height: '52px', padding: '16px 20px',
+              background: '#000000', borderRadius: '9999px', border: 'none', cursor: 'pointer',
+              boxShadow: '0px 1px 3px rgba(0,0,0,0.1), 0px 1px 2px -1px rgba(0,0,0,0.1)',
+            }}
           >
-            Download Banner <Download size={18} />
-          </Button>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.4282 7.36914L8.97826 11.8191L4.52832 7.36914" stroke="white" strokeWidth="1.5" strokeMiterlimit="10"/>
+              <path d="M8.97852 2.69922V11.8197" stroke="white" strokeWidth="1.5" strokeMiterlimit="10"/>
+              <path d="M14.8046 14.7002H3.15869" stroke="white" strokeWidth="1.5" strokeMiterlimit="10"/>
+            </svg>
+            <span style={{ fontFamily: 'Pretendard, sans-serif', fontWeight: 600, fontSize: '17px', lineHeight: '20px', color: '#FFFFFF', letterSpacing: '0' }}>Download</span>
+          </button>
         </footer>
       </aside>
 
       {/* Right Panel: Live Preview */}
       <main className={`flex-1 relative bg-white flex flex-col items-center p-5 md:p-8 overflow-y-auto ${showVariations ? '' : 'md:justify-center'} custom-scrollbar min-h-screen md:h-full`}>
         {/* Background Decorative Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gray-200 blur-[120px] rounded-full" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-gray-300 blur-[120px] rounded-full" />
+        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+          <div style={{ position: 'absolute', width: '616px', height: '480px', left: '-200px', top: '-160px', background: '#E8E8E8', opacity: 0.15, filter: 'blur(120px)', borderRadius: '9999px' }} />
+          <div style={{ position: 'absolute', width: '616px', height: '480px', right: '-200px', bottom: '-160px', background: '#D1D5DC', opacity: 0.15, filter: 'blur(120px)', borderRadius: '9999px' }} />
         </div>
 
         <div className={`relative z-10 w-full max-w-5xl flex flex-col items-center ${showVariations ? '' : 'gap-4'}`}>
@@ -1609,8 +2043,8 @@ function HomeView({
             <div className="w-full overflow-y-auto max-h-[80vh] custom-scrollbar pr-4">
               <VariationsView 
                 onSelect={onSelectVariation}
-                headline={selectedCopy?.headline || headline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
-                sub={selectedCopy?.sub || sub || (language === 'ja' ? 'トピックを入力してコピーを生成' : 'Enter a topic to generate copy')}
+                headline={selectedCopy?.headline || headline || (language === 'ja' ? '情報セキュリティ教育のご案内' : language === 'tw' ? '下半年必须信息安全教育指南' : language === 'en' ? 'Information Security Training' : '필수 정보 보안교육 안내')}
+                sub={selectedCopy?.sub || sub || (language === 'ja' ? '全従業員対象の必須教育です' : language === 'tw' ? '全體員工必修教育' : language === 'en' ? 'Mandatory training' : '모든 임직원 대상 필수 교육')}
                 cta={selectedCopy?.cta || cta}
                 align={align}
                 variations={variations}
@@ -1620,34 +2054,29 @@ function HomeView({
             </div>
           ) : (
             <>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`${activeVariationId}-${selectedCopy?.headline || ''}-${language}`}
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 1.1, y: -20 }}
-                  transition={{ type: "spring", damping: 20, stiffness: 100 }}
-                  className="relative mt-2 md:mt-4 w-full px-0 md:px-4"
-                >
-                <div ref={bannerRef} className="py-2">
-                    <ResponsiveBanner>
-                      <BannerCanvas 
-                        variation={activeVariation}
-                        headline={selectedCopy?.headline || headline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
-                        sub={selectedCopy?.sub || sub || (language === 'ja' ? 'トピックを入力してコピーを生成' : 'Enter a topic to generate copy')}
-                        ctaText={selectedCopy?.cta || cta}
-                        label={selectedCopy?.label}
-                        date={selectedCopy?.date}
-                        align={align}
-                        bgImage={bgImage}
-                        className="w-full max-w-full h-auto shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)]"
-                        tilt={true}
-                        language={language}
-                      />
+              <div className="relative mt-2 md:mt-4 w-full px-0 md:px-4">
+                <div className="py-2" style={{ width: '80%', margin: '0 auto' }}>
+                    <ResponsiveBanner height={activeVariation.bannerHeight || 216}>
+                      <div ref={bannerRef}>
+                        <BannerCanvas
+                          variation={activeVariation}
+                          headline={selectedCopy?.headline || headline || (language === 'ja' ? '情報セキュリティ教育のご案内' : language === 'tw' ? '下半年必须信息安全教育指南' : language === 'en' ? 'Information Security Training' : '필수 정보 보안교육 안내')}
+                          sub={selectedCopy?.sub || sub || (language === 'ja' ? '全従業員対象の必須教育です' : language === 'tw' ? '全體員工必修教育' : language === 'en' ? 'Mandatory training' : '모든 임직원 대상 필수 교육')}
+                          ctaText={selectedCopy?.cta || cta}
+                          label={selectedCopy?.label || manualLabel}
+                          date={selectedCopy?.date}
+                          align={align}
+                          bgImage={bgImage}
+                          className="w-full max-w-full h-auto"
+                          tilt={true}
+                          language={language}
+                          noRadius={isExporting}
+                          overrideHeadlineSize={dynamicHeadlineSize}
+                        />
+                      </div>
                     </ResponsiveBanner>
                   </div>
-                </motion.div>
-              </AnimatePresence>
+                </div>
 
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
@@ -1656,13 +2085,13 @@ function HomeView({
                 className="w-full flex justify-center mt-8 md:mt-16"
               >
                 <WebsitePreview language={language}>
-                  <ResponsiveBanner>
-                    <BannerCanvas 
+                  <ResponsiveBanner height={activeVariation.bannerHeight || 216}>
+                    <BannerCanvas
                       variation={activeVariation}
-                      headline={selectedCopy?.headline || headline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
-                      sub={selectedCopy?.sub || sub || (language === 'ja' ? 'トピックを入力してコピーを生成' : 'Enter a topic to generate copy')}
+                      headline={selectedCopy?.headline || headline || (language === 'ja' ? '情報セキュリティ教育のご案内' : language === 'tw' ? '下半年必须信息安全教育指南' : language === 'en' ? 'Information Security Training' : '필수 정보 보안교육 안내')}
+                      sub={selectedCopy?.sub || sub || (language === 'ja' ? '全従業員対象の必須教育です' : language === 'tw' ? '全體員工必修教育' : language === 'en' ? 'Mandatory training' : '모든 임직원 대상 필수 교육')}
                       ctaText={selectedCopy?.cta || cta}
-                      label={selectedCopy?.label}
+                      label={selectedCopy?.label || manualLabel}
                       date={selectedCopy?.date}
                       scale={1}
                       align={align}
@@ -1670,6 +2099,7 @@ function HomeView({
                       className="w-full h-full shadow-none"
                       tilt={false}
                       language={language}
+                      overrideHeadlineSize={dynamicHeadlineSize}
                     />
                   </ResponsiveBanner>
                 </WebsitePreview>
@@ -1684,10 +2114,10 @@ function HomeView({
       {showServicePreview && (
         <ServicePreview 
           variation={activeVariation}
-          headline={selectedCopy?.headline || headline || (language === 'ja' ? 'ここにヘッドラインを入力' : 'Your Headline Here')}
-          sub={selectedCopy?.sub || sub || (language === 'ja' ? 'トピックを入力してコピーを生成' : 'Enter a topic to generate copy')}
+          headline={selectedCopy?.headline || headline || (language === 'ja' ? '情報セキュリティ教育のご案内' : language === 'tw' ? '下半年必须信息安全教育指南' : language === 'en' ? 'Information Security Training' : '필수 정보 보안교육 안내')}
+          sub={selectedCopy?.sub || sub || (language === 'ja' ? '全従業員対象の必須教育です' : language === 'tw' ? '全體員工必修教育' : language === 'en' ? 'Mandatory training' : '모든 임직원 대상 필수 교육')}
           ctaText={selectedCopy?.cta || cta}
-          label={selectedCopy?.label}
+          label={selectedCopy?.label || manualLabel}
           date={selectedCopy?.date}
           align={align}
           bgImage={bgImage}
@@ -1721,7 +2151,7 @@ function GeneratingView() {
   );
 }
 
-const WebsitePreview = ({ children, language }: { children: React.ReactNode, language: 'ko' | 'ja' }) => {
+const WebsitePreview = ({ children, language }: { children: React.ReactNode, language: 'ko' | 'ja' | 'en' | 'tw' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -1773,7 +2203,7 @@ const WebsitePreview = ({ children, language }: { children: React.ReactNode, lan
   );
 };
 
-function VariationsView({ onSelect, headline, sub, cta, align, variations, bgImage, language }: { onSelect: (id: number) => void, headline: string, sub: string, cta: string, align?: 'left' | 'center', variations: DesignVariation[], bgImage?: string | undefined, language: 'ko' | 'ja' }) {
+function VariationsView({ onSelect, headline, sub, cta, align, variations, bgImage, language }: { onSelect: (id: number) => void, headline: string, sub: string, cta: string, align?: 'left' | 'center', variations: DesignVariation[], bgImage?: string | undefined, language: 'ko' | 'ja' | 'en' | 'tw' }) {
   return (
     <div className="w-full mt-12">
       <div className="flex items-center justify-between mb-8 px-2">
@@ -1792,8 +2222,8 @@ function VariationsView({ onSelect, headline, sub, cta, align, variations, bgIma
             className="group cursor-pointer bg-white rounded-[32px] border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all"
           >
             <div className="w-full">
-              <ResponsiveBanner>
-                <BannerCanvas 
+              <ResponsiveBanner height={v.bannerHeight || 216}>
+                <BannerCanvas
                   variation={v}
                   headline={headline}
                   sub={sub}
@@ -1823,7 +2253,7 @@ function VariationsView({ onSelect, headline, sub, cta, align, variations, bgIma
   );
 }
 
-function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, language }: { onBack: () => void, variation: DesignVariation, initialCopy: BannerCopy | null, bgImage: string | undefined, setBgImage: (v: string | undefined) => void, language: 'ko' | 'ja' }) {
+function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, language }: { onBack: () => void, variation: DesignVariation, initialCopy: BannerCopy | null, bgImage: string | undefined, setBgImage: (v: string | undefined) => void, language: 'ko' | 'ja' | 'en' | 'tw' }) {
   const style = variation.colors;
 
   const [headline, setHeadline] = useState(initialCopy?.headline || '');
@@ -1838,15 +2268,14 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
 
   const presetBackgrounds = [
     { id: 'none', label: 'None', url: '' },
-    { id: 'bg1_acd', label: 'BG 1 (ACD)', url: '/BG_Test_1(ACD).png' },
-    { id: 'bg1_b', label: 'BG 1 (B)', url: '/BG_Test_1(B).png' },
-    { id: 'bg2_acd', label: 'BG 2 (ACD)', url: '/BG_Test_2(ACD).png' },
-    { id: 'bg2_b', label: 'BG 2 (B)', url: '/BG_Test_2(B).png' },
-    { id: 'bg3_acd', label: 'BG 3 (ACD)', url: '/BG_Test_3(ACD).png' },
-    { id: 'bg3_b', label: 'BG 3 (B)', url: '/BG_Test_3(B).png' },
-    { id: 'bg4_acd', label: 'BG 4 (ACD)', url: '/BG_Test_4(ACD).png' },
-    { id: 'bg4_b', label: 'BG 4 (B)', url: '/BG_Test_4(B).png' },
-    { id: 'bg5_b', label: 'BG 5 (B)', url: '/BG_Test_5(B).png' },
+    { id: 'sample1', label: 'Light Bulb', url: '/Sample1.png' },
+    { id: 'sample2', label: 'DNA', url: '/Sample2.png' },
+    { id: 'sample3', label: 'Cloud Docs', url: '/Sample3.png' },
+    { id: 'sample4', label: 'Rocket', url: '/Sample4.png' },
+    { id: 'sample5', label: 'Flag', url: '/Sample5.png' },
+    { id: 'sample6', label: 'Target', url: '/Sample6.png' },
+    { id: 'sample7', label: 'Arrow Rider', url: '/Sample7.png' },
+    { id: 'sample8', label: 'Space Shuttle', url: '/Sample8.png' },
   ];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1998,7 +2427,7 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
                 {bgImage && !presetBackgrounds.find(bg => bg.url === bgImage) && (
                   <button
                     onClick={() => setBgImage(bgImage)}
-                    className={`aspect-[740/216] rounded-xl border-2 transition-all overflow-hidden relative border-black`}
+                    className={`aspect-square rounded-xl border-2 transition-all overflow-hidden relative border-black`}
                   >
                     <img src={bgImage} alt="Uploaded" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -2024,7 +2453,7 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
                   <button
                     key={bg.id}
                     onClick={() => setBgImage(bg.url)}
-                    className={`aspect-[740/216] rounded-xl border-2 transition-all overflow-hidden relative ${
+                    className={`aspect-square rounded-xl border-2 transition-all overflow-hidden relative ${
                       bgImage === bg.url ? 'border-black' : 'border-gray-100'
                     }`}
                   >
@@ -2057,8 +2486,8 @@ function EditorView({ onBack, variation, initialCopy, bgImage, setBgImage, langu
         {/* Canvas Area */}
         <main className="flex-1 bg-[#f0f0f0] flex items-center justify-center p-12 overflow-auto relative">
           <div className="relative group">
-            <ResponsiveBanner baseScale={0.9}>
-              <BannerCanvas 
+            <ResponsiveBanner baseScale={0.9} height={variation.bannerHeight || 216}>
+              <BannerCanvas
                 variation={variation}
                 headline={headline}
                 sub={sub}
@@ -2110,14 +2539,18 @@ export default function App() {
   const [step, setStep] = useState<'home' | 'editor'>('home');
   const [prompt, setPrompt] = useState('');
   const [variations, setVariations] = useState<DesignVariation[]>(INITIAL_VARIATIONS);
-  const [selectedVariationId, setSelectedVariationId] = useState<number>(1);
+  const [selectedVariationId, setSelectedVariationId] = useState<number>(10);
   const [activeCopy, setActiveCopy] = useState<BannerCopy | null>(null);
   const [showVariations, setShowVariations] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bgImage, setBgImage] = useState<string | undefined>(undefined);
-  const [language, setLanguage] = useState<'ko' | 'ja'>(() => {
-    const browserLang = typeof navigator !== 'undefined' ? navigator.language : 'ko';
-    return browserLang.startsWith('ja') ? 'ja' : 'ko';
+  const [bgImage, setBgImage] = useState<string | undefined>('/Sample1.png');
+  const [language, setLanguage] = useState<'ko' | 'ja' | 'en' | 'tw'>(() => {
+    const browserLang = typeof navigator !== 'undefined' ? navigator.language.toLowerCase() : 'en';
+    if (browserLang.startsWith('ko')) return 'ko';
+    if (browserLang.startsWith('ja')) return 'ja';
+    if (browserLang.startsWith('zh-tw') || browserLang.startsWith('zh-hant') || browserLang.startsWith('zh-hk')) return 'tw';
+    if (browserLang.startsWith('en')) return 'en';
+    return 'en'; // 지원하지 않는 언어는 EN으로 기본값
   });
 
   const handleGenerate = (copy: BannerCopy | null) => {
@@ -2175,11 +2608,12 @@ export default function App() {
           language={language}
         />
       )}
-      <AddStyleModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onAdd={handleAddStyle} 
+      <AddStyleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={handleAddStyle}
       />
+      <Analytics />
     </>
   );
 }
